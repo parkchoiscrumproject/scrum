@@ -2,7 +2,7 @@ package com.parkchoi.scrum.util;
 
 public class ApiResponse<T> {
 
-    // 상태 구분
+    // 상태 구분1
     private static final String SUCCESS_STATUS = "success";
     private static final String FAIL_STATUS = "fail";
     private static final String ERROR_STATUS = "error";
