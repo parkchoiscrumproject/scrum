@@ -44,8 +44,10 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
             oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
         }
 
+        String email = oAuth2UserInfo.getEmail();
+
         // 유저가 db에 있는지 판단.
-        Optional<User> byUser = userRepository.findById(oAuth2UserInfo.getProviderId());
+        Optional<User> byUser = userRepository.findByEmail(email);
 
         /*
         * 만약에 유저가 없으면 추가 정보 페이지로 넘겨야함.
