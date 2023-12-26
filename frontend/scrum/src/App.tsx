@@ -1,24 +1,14 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import KakaoLoginButton from './KakaoLoginButton.tsx';
-import Success from './Success.tsx';
-import RegistPage from './pages/RegistPage.tsx';
-
-const LoginButtons: React.FC = () => {
-  return (
-    <div>
-      <KakaoLoginButton />
-    </div>
-  );
-};
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Home from "./pages/HomePage/Home.tsx";
+import Success from "./Success.tsx";
 
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginButtons />} />
+        <Route path="/" element={<Home />} />
         <Route path="/success" element={<Success />} />
-        <Route path="/regist" element={<RegistPage />} />
       </Routes>
     </Router>
   );
