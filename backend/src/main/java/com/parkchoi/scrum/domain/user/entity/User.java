@@ -40,12 +40,10 @@ public class User {
 
 
     @Builder
-    public User(Long id, String type, String email, String nickname, String statusMessage, String profileImage) {
-        this.id = id;
+    public User(String type, String email, String nickname, String profileImage) {
         this.type = type;
         this.email = email;
         this.nickname = nickname;
-        this.statusMessage = statusMessage;
         this.profileImage = profileImage;
     }
 }

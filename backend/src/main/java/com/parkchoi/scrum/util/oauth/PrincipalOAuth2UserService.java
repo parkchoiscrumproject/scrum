@@ -2,7 +2,7 @@ package com.parkchoi.scrum.util.oauth;
 
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
+import com.parkchoi.scrum.util.RandomNickname;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -10,8 +10,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Optional;
 
@@ -26,6 +24,7 @@ import java.util.Optional;
 public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final RandomNickname randomNickname;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -50,13 +49,18 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
         Optional<User> byUser = userRepository.findByEmail(email);
 
         /*
-        * 만약에 유저가 없으면 추가 정보 페이지로 넘겨야함.
-        * 해당 유저의 정보를 보존하기 위해서 세션에 저장.
+        * 만약에 유저가 없으면 우선 db에 유저의 정보를 저장.
+        * 랜덤 닉네임 생성 및 기본 프로필사진 설정
         * */
         if(byUser.isEmpty()){
-            ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpSession session = attr.getRequest().getSession(true); // true: 존재하지 않으면 새로 생성
-            session.setAttribute("USER_INFO", oAuth2UserInfo);
+            User userInfo = User.builder()
+                    .type("kakao")
+                    .profileImage("https://ssgcrum.s3.ap-northeast-2.amazonaws.com/profile/default_image.png")
+                    .email(email)
+                    .nickname(randomNickname.generateUniqueNickname())
+                    .build();
+
+            userRepository.save(userInfo);
         }
 
         return oAuth2User;
