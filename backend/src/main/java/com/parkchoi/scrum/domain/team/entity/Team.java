@@ -4,6 +4,7 @@ import com.parkchoi.scrum.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,6 +16,7 @@ import java.util.List;
 @Entity
 @Getter
 @EntityListeners(AuditingEntityListener.class)
+@NoArgsConstructor
 public class Team {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,8 +43,6 @@ public class Team {
     @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
     private List<InviteTeamList> inviteTeamList = new ArrayList<>();
 
-    public Team() {
-    }
 
     @Builder
     public Team(String name, String description, int currentMember, int maxMember, User user, String teamProfileImage) {
