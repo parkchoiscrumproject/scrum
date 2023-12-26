@@ -24,14 +24,19 @@ public class SecurityConfig{
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // csrf 보호 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
+                // cors설정 따름
                 .cors((cors) -> cors.configurationSource(corsConfigurationSource))
+                // 세션 사용 안함(JWT 사용)
                 .sessionManagement((sessionManagement) ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // 모든 요청 허용
                 .authorizeHttpRequests(authorize ->{
                     authorize.anyRequest().authenticated();
                 })
+                // oauth 로그인
                 .oauth2Login((oauth) ->{
                     oauth.successHandler(new SuccessHandler());
                     oauth.failureHandler(new FailureHandler());

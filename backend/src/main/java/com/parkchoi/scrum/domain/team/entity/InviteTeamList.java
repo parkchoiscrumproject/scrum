@@ -4,9 +4,11 @@ import com.parkchoi.scrum.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class InviteTeamList {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +28,4 @@ public class InviteTeamList {
         this.team = team;
     }
 
-    public InviteTeamList() {
-
-    }
 }
