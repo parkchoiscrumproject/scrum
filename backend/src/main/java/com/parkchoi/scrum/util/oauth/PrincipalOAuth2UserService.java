@@ -49,7 +49,7 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
         Optional<User> byUser = userRepository.findByEmail(email);
 
         /*
-        * 만약에 유저가 없으면 우선 db에 유저의 정보를 저장.
+        * 만약에 유저가 없으면 회원가입 진행
         * 랜덤 닉네임 생성 및 기본 프로필사진 설정
         * */
         if(byUser.isEmpty()){
