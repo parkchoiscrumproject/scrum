@@ -20,6 +20,8 @@ public class SecurityConfig{
 
     private final CorsConfigurationSource corsConfigurationSource;
     private final PrincipalOAuth2UserService principalOAuth2UserService;
+    private final SuccessHandler successHandler;
+    private final FailureHandler failureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,8 +40,8 @@ public class SecurityConfig{
                 })
                 // oauth 로그인
                 .oauth2Login((oauth) ->{
-                    oauth.successHandler(new SuccessHandler());
-                    oauth.failureHandler(new FailureHandler());
+                    oauth.successHandler(successHandler);
+                    oauth.failureHandler(failureHandler);
                     // oauth 로그인 성공 후 사용자 정보를 가져오기 위함.
                     // 즉 code -> accessToken 과정을 거친 후 동작.
                     oauth.userInfoEndpoint((userInfo) ->{
