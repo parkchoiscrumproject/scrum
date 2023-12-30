@@ -3,42 +3,45 @@ package com.parkchoi.scrum.util.oauth;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.DefaultRedirectStrategy;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 
 
 /*
-* 여기서 처리해야 되는 내용
-* 1. 액세스 토큰 생성
-* 2. 리프레시 토큰 생성
-* 3. 쿠키에 리프레시 담음.
-* 4. 클라이언트에게 필요한 dto 전달
-* */
+ * 여기서 처리해야 되는 내용
+ * 1. 액세스 토큰 생성
+ * 2. 리프레시 토큰 생성
+ * 3. 쿠키에 리프레시 담음.
+ * 4. 클라이언트에게 필요한 dto 전달
+ * */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
-
-    @Autowired
-    public SuccessHandler(JwtUtil jwtUtil, UserRepository userRepository) {
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-    }
+    private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+    private final PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -52,27 +55,42 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         String email = String.valueOf(kakaoAccount.get("email"));
 
-        Optional<User> byEmail = userRepository.findByEmail(email);
-        if(byEmail.isEmpty()){
-            // 에러처리
-        }else{
-            User user = byEmail.get();
-            // 액세스 토큰 생성
-            String accessToken = jwtUtil.createAccessToken(user.getId());
-            // 리프레시 토큰 생성
-            String refreshToken = jwtUtil.createRefreshToken(user.getId());
+        // 유저 없으면 예외처리
+        Optional<User> byEmail = Optional.ofNullable(userRepository.findByEmail(email)
+                .orElseThrow(EntityNotFoundException::new));
 
-            // 쿠키 생성
-            Cookie cookie = new Cookie("refreshToken", refreshToken);
-            cookie.setSecure(false);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
+        User user = byEmail.get();
 
-            response.addCookie(cookie);
+        // 액세스 토큰 생성 및 암호화 액세스 토큰 저장
+        String accessToken = jwtUtil.createAccessToken(user.getId());
+        String encodeAccessToken = passwordEncoder.encode(accessToken);
+        user.setTempAccessToken(encodeAccessToken);
 
-            // 이제 dto 만들어서 응답 보내줘야함.
+        // 리프레시 토큰 생성
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-        }
+        // 리프레시 토큰을 위한 쿠키 생성
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+        refreshTokenCookie.setPath("/");
 
+        // 쿠키에 리프레시 토큰 저장
+        response.addCookie(refreshTokenCookie);
+
+        // url 생성
+        String url = makeRedirectUrl(accessToken);
+
+        redirectStrategy.sendRedirect(request, response, url);
     }
+
+    // 리다이렉트 주소
+    private String makeRedirectUrl(String accessToken) {
+        return UriComponentsBuilder.fromUriString("http://localhost:3000/success")
+                .queryParam("accessToken", accessToken)
+                .encode(StandardCharsets.UTF_8)
+                .build().toUriString();
+    }
+
 }
+
