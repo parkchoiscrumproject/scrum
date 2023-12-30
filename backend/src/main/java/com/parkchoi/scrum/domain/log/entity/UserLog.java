@@ -1,32 +1,32 @@
-package com.parkchoi.scrum.domain.scrum.entity;
+package com.parkchoi.scrum.domain.log.entity;
 
 import com.parkchoi.scrum.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
-public class ScrumRoomParticipant {
+public class UserLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scrum_room_id")
-    private ScrumRoom scrumRoom;
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+    @CreatedDate
+    private LocalDateTime loginTime;
 
     @Builder
-    public ScrumRoomParticipant(ScrumRoom scrumRoom, User user) {
-        this.scrumRoom = scrumRoom;
+    public UserLog(User user) {
         this.user = user;
     }
-
 }

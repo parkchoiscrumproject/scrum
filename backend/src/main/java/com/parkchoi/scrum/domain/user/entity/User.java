@@ -37,6 +37,10 @@ public class User {
     private String profileImage;
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<InviteTeamList> inviteTeamList = new ArrayList<>();
+    @Column(nullable = false)
+    private Boolean isOnline = false;
+    @Column(nullable = true)
+    private String tempAccessToken;
 
 
     @Builder
@@ -45,5 +49,10 @@ public class User {
         this.email = email;
         this.nickname = nickname;
         this.profileImage = profileImage;
+        this.isOnline = true;
+    }
+
+    public void setTempAccessToken(String tempAccessToken){
+        this.tempAccessToken = tempAccessToken;
     }
 }
