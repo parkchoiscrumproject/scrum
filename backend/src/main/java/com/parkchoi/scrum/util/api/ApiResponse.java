@@ -1,4 +1,4 @@
-package com.parkchoi.scrum.util;
+package com.parkchoi.scrum.util.api;
 
 public class ApiResponse<T> {
 

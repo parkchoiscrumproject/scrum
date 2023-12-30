@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
-public class ScrumRoom {
+public class Scrum {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,7 +38,7 @@ public class ScrumRoom {
     private int maxMember;
 
     @Builder
-    public ScrumRoom(Team team, User user, String name, int currentMember, int maxMember) {
+    public Scrum(Team team, User user, String name, int currentMember, int maxMember) {
         this.team = team;
         this.user = user;
         this.name = name;
