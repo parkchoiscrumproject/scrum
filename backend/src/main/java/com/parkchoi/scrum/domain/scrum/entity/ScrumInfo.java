@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -19,18 +18,20 @@ public class ScrumInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scrum_room_id")
-    private ScrumRoom scrumRoom;
+    @JoinColumn(name = "scrum_id")
+    private Scrum scrum;
     @Column(nullable = false)
     private String subject;
-    @CreatedDate
+    @Column(nullable = false)
     private LocalDateTime startTime;
     @Column(nullable = true)
     private LocalDateTime endTime;
+    @Column(nullable = false)
+    private Boolean isStart = false;
 
     @Builder
-    public ScrumInfo(ScrumRoom scrumRoom, String subject) {
-        this.scrumRoom = scrumRoom;
+    public ScrumInfo(Scrum scrum, String subject) {
+        this.scrum = scrum;
         this.subject = subject;
     }
 

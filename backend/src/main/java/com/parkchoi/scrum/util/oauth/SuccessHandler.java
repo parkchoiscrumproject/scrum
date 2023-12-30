@@ -1,29 +1,96 @@
 package com.parkchoi.scrum.util.oauth;
 
+import com.parkchoi.scrum.domain.user.entity.User;
+import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.util.jwt.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.DefaultRedirectStrategy;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Optional;
 
+
+/*
+ * 여기서 처리해야 되는 내용
+ * 1. 액세스 토큰 생성
+ * 2. 리프레시 토큰 생성
+ * 3. 쿠키에 리프레시 담음.
+ * 4. 클라이언트에게 필요한 dto 전달
+ * */
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class SuccessHandler implements AuthenticationSuccessHandler {
 
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+    private final PasswordEncoder passwordEncoder;
+
+
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         log.info("oauth 성공 핸들러 동작");
-        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-        HttpSession session = attr.getRequest().getSession(true); // true: 존재하지 않으면 새로 생성
-        if(session != null){
-            response.sendRedirect("http://localhost:3000/regist");
-        }else{
-            response.sendRedirect("http://localhost:3000");
-        }
+        OAuth2User principal = (OAuth2User) authentication.getPrincipal();
+
+        // user의 이메일 추출
+        Map<String, Object> attributes = principal.getAttributes();
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        String email = String.valueOf(kakaoAccount.get("email"));
+
+        // 유저 없으면 예외처리
+        Optional<User> byEmail = Optional.ofNullable(userRepository.findByEmail(email)
+                .orElseThrow(EntityNotFoundException::new));
+
+        User user = byEmail.get();
+
+        // 액세스 토큰 생성 및 암호화 액세스 토큰 저장
+        String accessToken = jwtUtil.createAccessToken(user.getId());
+        String encodeAccessToken = passwordEncoder.encode(accessToken);
+        user.setTempAccessToken(encodeAccessToken);
+
+        // 리프레시 토큰 생성
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+
+        // 리프레시 토큰을 위한 쿠키 생성
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+        refreshTokenCookie.setPath("/");
+
+        // 쿠키에 리프레시 토큰 저장
+        response.addCookie(refreshTokenCookie);
+
+        // url 생성
+        String url = makeRedirectUrl(accessToken);
+
+        redirectStrategy.sendRedirect(request, response, url);
     }
+
+    // 리다이렉트 주소
+    private String makeRedirectUrl(String accessToken) {
+        return UriComponentsBuilder.fromUriString("http://localhost:3000/success")
+                .queryParam("accessToken", accessToken)
+                .encode(StandardCharsets.UTF_8)
+                .build().toUriString();
+    }
+
 }
+
