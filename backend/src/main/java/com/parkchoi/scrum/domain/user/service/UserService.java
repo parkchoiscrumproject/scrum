@@ -2,48 +2,69 @@ package com.parkchoi.scrum.domain.user.service;
 
 import com.parkchoi.scrum.domain.log.entity.UserLog;
 import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
-import com.parkchoi.scrum.domain.user.dto.request.AccessTokenRequestDTO;
+import com.parkchoi.scrum.domain.user.dto.response.UserInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.entity.User;
+import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
-import com.parkchoi.scrum.util.GetUserId;
+import com.parkchoi.scrum.util.jwt.JwtUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserLogRepository userLogRepository;
-    private final GetUserId getUserId;
-    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
 
     // 서비스 로그인
     @Transactional
-    public void login(AccessTokenRequestDTO accessTokenRequestDTO){
+    public UserInfoResponseDTO getUserInfo(HttpServletRequest request) {
 
-        User user = getUserId.getUserId();
-        String tempAccessToken = user.getTempAccessToken();
-        if (tempAccessToken.equals(null)){
-            throw new UserNotFoundException("로그인 과정에 문제가 발생하였습니다.(임시 토큰 null)");
-        }else{
-            // 두 개의 accessToken이 같이면 로그인 정상 진행
-            if (passwordEncoder.matches(accessTokenRequestDTO.getAccessToken(), tempAccessToken)){
-                // 로그인 기록 생성
-                UserLog build = UserLog.builder()
-                        .user(user).build();
+        Cookie[] cookies = request.getCookies();
+        if(cookies == null){
+            throw new AuthFailException("쿠키 존재하지 않음");
+        }
+        String accessToken = null;
 
-                userLogRepository.save(build);
-                user.setTempAccessToken(null);
-            }else{
-                throw new UserNotFoundException("로그인 과정에 문제가 발생하였습니다.(액세스 토큰 불일치)");
+        for (Cookie c : cookies) {
+            if (c.getName().equals("accessToken")) {
+                accessToken = c.getValue();
+                break;
             }
         }
 
+        // 쿠키에 토큰 존재여부 파악
+        if (accessToken == null) {
+            throw new AuthFailException("쿠키에 토큰 존재하지 않음");
+        } else {
+            Long userId = jwtUtil.getUserId(accessToken);
 
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+            // 유저 로그인 로그 생성
+            UserLog build = UserLog.builder()
+                    .user(user).build();
+            userLogRepository.save(build);
+
+            UserInfoResponseDTO userInfoDTO = UserInfoResponseDTO.builder()
+                    .email(user.getEmail())
+                    .nickname(user.getNickname())
+                    .profileImage(user.getProfileImage())
+                    .statusMessage(user.getStatusMessage())
+                    .isOnline(user.getIsOnline()).build();
+
+            return userInfoDTO;
+        }
     }
-
 }
+

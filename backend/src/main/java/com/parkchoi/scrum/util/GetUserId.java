@@ -20,6 +20,7 @@ public class GetUserId {
         // 시큐리티에서 저장된 정보 꺼냄
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
+        System.out.println(principal.toString());
         Long userId = (Long) principal;
 
         // 없으면 예외처리
