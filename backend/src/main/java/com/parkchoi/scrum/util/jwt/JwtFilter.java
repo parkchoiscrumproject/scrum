@@ -3,11 +3,11 @@ package com.parkchoi.scrum.util.jwt;
 import com.parkchoi.scrum.domain.user.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -34,35 +34,33 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override // 이 주소로 오는 건 토큰 없어도 됨.
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/oauth2/authorization/");
+        return path.startsWith("/oauth2/authorization/") || path.startsWith("/api/userinfo");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         // 헤더에서 액세스 토큰 추출
-        final String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-        log.info("authorization : {}", authorization);
-
-        // 토큰이 없거나 Bearer로 시작하지 않는 경우
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            if(authorization == null){
-                log.error("액세스 토큰이 null입니다.");
-                return;
-            }else if(!authorization.startsWith("Bearer ")){
-                log.error("Bearer 로 시작하지 않습니다.");
-                return;
+        Cookie[] cookies = request.getCookies();
+        String accessToken = null;
+        for (Cookie c : cookies) {
+            if (c.getName().equals("accessToken")) {
+                accessToken = c.getValue();
+                break;
             }
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "액세스 토큰 에러 발생");
+        }
+
+        log.info("accessToken : {}", accessToken);
+
+        // 토큰이 null인 경우(없는 경우)
+        if (accessToken == null) {
+            log.error("액세스 토큰이 null입니다.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "액세스 토큰 null 발생");
             return;
         }
 
-        // 토큰 꺼내기(첫 번째가 토큰이다. bearer 제외)
-        String token = authorization.split(" ")[1];
-
         // userId 토큰에서 꺼냄.
-        Long userId = jwtUtil.getUserId(token);
+        Long userId = jwtUtil.getUserId(accessToken);
         log.info("userId:{}", userId);
 
 //        // 토큰 만료됐는지 확인
@@ -111,7 +109,6 @@ public class JwtFilter extends OncePerRequestFilter {
 //
 //            return;
 //        }
-
 
 
         // 권한 부여

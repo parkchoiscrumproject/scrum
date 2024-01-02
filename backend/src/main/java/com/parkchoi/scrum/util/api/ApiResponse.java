@@ -1,5 +1,8 @@
 package com.parkchoi.scrum.util.api;
 
+import lombok.Getter;
+
+@Getter
 public class ApiResponse<T> {
 
     // 상태 구분1

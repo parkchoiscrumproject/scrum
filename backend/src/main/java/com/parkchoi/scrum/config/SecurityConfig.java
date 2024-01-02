@@ -36,7 +36,7 @@ public class SecurityConfig{
                 )
                 // 모든 요청 허용
                 .authorizeHttpRequests(authorize ->{
-                    authorize.anyRequest().authenticated();
+                    authorize.anyRequest().permitAll();
                 })
                 // oauth 로그인
                 .oauth2Login((oauth) ->{

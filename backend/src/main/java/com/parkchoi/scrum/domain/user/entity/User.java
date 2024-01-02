@@ -39,9 +39,6 @@ public class User {
     private List<InviteTeamList> inviteTeamList = new ArrayList<>();
     @Column(nullable = false)
     private Boolean isOnline = false;
-    @Column(nullable = true)
-    private String tempAccessToken;
-
 
     @Builder
     public User(String type, String email, String nickname, String profileImage) {
@@ -52,7 +49,4 @@ public class User {
         this.isOnline = true;
     }
 
-    public void setTempAccessToken(String tempAccessToken){
-        this.tempAccessToken = tempAccessToken;
-    }
 }
