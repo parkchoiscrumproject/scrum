@@ -14,4 +14,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 닉네임 존재 여부
     Boolean existsByNickname(String nickname);
+
 }
