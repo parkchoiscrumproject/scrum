@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Home from "./pages/HomePage/Home.tsx";
-import Success from "./Success.tsx";
+import Success from "./utils/Success.tsx";
 
 const App: React.FC = () => {
   return (
