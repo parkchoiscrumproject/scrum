@@ -2,7 +2,8 @@ package com.parkchoi.scrum.domain.user.service;
 
 import com.parkchoi.scrum.domain.log.entity.UserLog;
 import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
-import com.parkchoi.scrum.domain.user.dto.response.UserInfoResponseDTO;
+import com.parkchoi.scrum.domain.user.dto.response.UserInviteInfoResponseDTO;
+import com.parkchoi.scrum.domain.user.dto.response.UserLoginInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
@@ -12,6 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +28,7 @@ public class UserService {
 
     // 서비스 로그인
     @Transactional
-    public UserInfoResponseDTO getUserInfo(HttpServletRequest request) {
+    public UserLoginInfoResponseDTO getUserInfo(HttpServletRequest request) {
         String accessToken = jwtUtil.getAccessToken(request);
 
         Long userId = jwtUtil.getUserId(accessToken);
@@ -38,7 +41,7 @@ public class UserService {
                 .user(user).build();
         userLogRepository.save(build);
 
-        UserInfoResponseDTO userInfoDTO = UserInfoResponseDTO.builder()
+        UserLoginInfoResponseDTO userInfoDTO = UserLoginInfoResponseDTO.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImage(user.getProfileImage())
@@ -53,6 +56,27 @@ public class UserService {
         String accessToken = jwtUtil.getAccessToken(request);
 
         return userRepository.existsByNickname(nickname);
+    }
+
+    // 이메일로 유저 정보 찾기
+    public UserInviteInfoResponseDTO findUserInfoToEmail(HttpServletRequest request, String email){
+        String accessToken = jwtUtil.getAccessToken(request);
+
+        Optional<User> byEmail = userRepository.findByEmail(email);
+        if(byEmail.isEmpty()){
+            return null;
+        }else{
+            User user = byEmail.get();
+
+            UserInviteInfoResponseDTO build = UserInviteInfoResponseDTO.builder()
+                    .userId(user.getId())
+                    .profileImage(user.getProfileImage())
+                    .nickname(user.getNickname())
+                    .build();
+
+            return build;
+        }
+
     }
 }
 
