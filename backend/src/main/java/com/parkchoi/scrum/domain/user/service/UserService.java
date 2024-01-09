@@ -4,11 +4,9 @@ import com.parkchoi.scrum.domain.log.entity.UserLog;
 import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
 import com.parkchoi.scrum.domain.user.dto.response.UserInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.entity.User;
-import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,43 +26,33 @@ public class UserService {
     // 서비스 로그인
     @Transactional
     public UserInfoResponseDTO getUserInfo(HttpServletRequest request) {
+        String accessToken = jwtUtil.getAccessToken(request);
 
-        Cookie[] cookies = request.getCookies();
-        if(cookies == null){
-            throw new AuthFailException("쿠키 존재하지 않음");
-        }
-        String accessToken = null;
+        Long userId = jwtUtil.getUserId(accessToken);
 
-        for (Cookie c : cookies) {
-            if (c.getName().equals("accessToken")) {
-                accessToken = c.getValue();
-                break;
-            }
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
 
-        // 쿠키에 토큰 존재여부 파악
-        if (accessToken == null) {
-            throw new AuthFailException("쿠키에 토큰 존재하지 않음");
-        } else {
-            Long userId = jwtUtil.getUserId(accessToken);
+        // 유저 로그인 로그 생성
+        UserLog build = UserLog.builder()
+                .user(user).build();
+        userLogRepository.save(build);
 
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+        UserInfoResponseDTO userInfoDTO = UserInfoResponseDTO.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImage(user.getProfileImage())
+                .statusMessage(user.getStatusMessage())
+                .isOnline(user.getIsOnline()).build();
 
-            // 유저 로그인 로그 생성
-            UserLog build = UserLog.builder()
-                    .user(user).build();
-            userLogRepository.save(build);
+        return userInfoDTO;
+    }
 
-            UserInfoResponseDTO userInfoDTO = UserInfoResponseDTO.builder()
-                    .email(user.getEmail())
-                    .nickname(user.getNickname())
-                    .profileImage(user.getProfileImage())
-                    .statusMessage(user.getStatusMessage())
-                    .isOnline(user.getIsOnline()).build();
+    // 닉네임 중복 검사
+    public boolean checkDuplicationNickname(HttpServletRequest request, String nickname) {
+        String accessToken = jwtUtil.getAccessToken(request);
 
-            return userInfoDTO;
-        }
+        return userRepository.existsByNickname(nickname);
     }
 }
 
