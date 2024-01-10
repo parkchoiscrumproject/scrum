@@ -51,4 +51,8 @@ public class User {
         this.isOnline = true;
     }
 
+    public void isOnlineTrue(){
+        this.isOnline = true;
+    }
+
 }

@@ -1,12 +1,9 @@
 package com.parkchoi.scrum.util.jwt;
 
-import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,29 +24,6 @@ public class JwtUtil {
     private Long refreshTokenTime;
     // redis에 저장할 키 밸류의 타입
     private final RedisTemplate<String, String> redisTemplate;
-
-    // 쿠키에서 액세스 토큰 추출
-    public String getAccessToken(HttpServletRequest request){
-        Cookie[] cookies = request.getCookies();
-        if(cookies == null){
-            throw new AuthFailException("쿠키 존재하지 않음");
-        }
-        String accessToken = null;
-
-        // 쿠키 돌면서 액세스토큰 찾음
-        for (Cookie c : cookies) {
-            if (c.getName().equals("accessToken")) {
-                accessToken = c.getValue();
-                break;
-            }
-        }
-
-        if(accessToken == null){
-            throw new AuthFailException("액세스 토큰 존재하지 않음");
-        }
-
-        return accessToken;
-    }
 
     // 유저 pk 꺼내기
     public Long getUserId(String token){
