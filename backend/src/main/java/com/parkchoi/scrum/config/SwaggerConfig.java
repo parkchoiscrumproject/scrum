@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
 
 
-    //swagger 주소 : http://localhost:8080/swagger-ui/index.html#/
-
     private static final String API_NAME = "Scrum API";
     private static final String API_VERSION = "1.0.0";
     private static final String API_DESCRIPTION = "Scrum API 명세서입니다.";
