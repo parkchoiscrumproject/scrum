@@ -4,6 +4,9 @@ import com.parkchoi.scrum.domain.user.dto.response.UserInviteInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.dto.response.UserLoginInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.service.UserService;
 import com.parkchoi.scrum.util.api.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -12,11 +15,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "유저 컨트롤러", description = "회원 관련 API")
 public class UserController {
 
     private final UserService userService;
 
     // 유저 로그인 실행
+    @Operation(summary = "유저 로그인 API", description = "AccessToken을 통해 로그인을 진행합니다.")
+    @Parameter(name = "accessToken", description = "엑세스 토큰")
     @PostMapping("/user/login")
     public ApiResponse<?> login(@CookieValue(name = "accessToken", required = false) String accessToken) {
         UserLoginInfoResponseDTO userInfo = userService.getUserInfo(accessToken);
