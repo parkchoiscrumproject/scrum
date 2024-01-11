@@ -1,16 +1,20 @@
 package com.parkchoi.scrum.config;
 
+import com.parkchoi.scrum.util.jwt.JwtFilter;
+import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.oauth.FailureHandler;
 import com.parkchoi.scrum.util.oauth.PrincipalOAuth2UserService;
 import com.parkchoi.scrum.util.oauth.SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -22,6 +26,7 @@ public class SecurityConfig{
     private final PrincipalOAuth2UserService principalOAuth2UserService;
     private final SuccessHandler successHandler;
     private final FailureHandler failureHandler;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -36,8 +41,11 @@ public class SecurityConfig{
                 )
                 // 모든 요청 허용
                 .authorizeHttpRequests(authorize ->{
+                    // 모든 api로 시작하는 요청은 인증 필요
+                    authorize.requestMatchers("/api").authenticated();
                     authorize.anyRequest().permitAll();
                 })
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 // oauth 로그인
                 .oauth2Login((oauth) ->{
                     oauth.successHandler(successHandler);
@@ -51,4 +59,5 @@ public class SecurityConfig{
 
         return http.build();
     }
+
 }
