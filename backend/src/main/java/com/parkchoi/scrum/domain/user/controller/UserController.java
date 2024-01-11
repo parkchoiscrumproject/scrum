@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "유저 컨트롤러", description = "회원 관련 API")
+@Tag(name = "01.User")
 public class UserController {
 
     private final UserService userService;
