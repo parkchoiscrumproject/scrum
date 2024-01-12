@@ -51,8 +51,14 @@ public class User {
         this.isOnline = true;
     }
 
+    // 온라인 상태 변경
     public void isOnlineTrue(){
         this.isOnline = true;
+    }
+
+    // 오프라인 상태 변경
+    public void isOnlineFalse(){
+        this.isOnline = false;
     }
 
 }
