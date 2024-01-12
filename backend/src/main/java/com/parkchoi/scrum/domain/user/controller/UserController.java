@@ -7,6 +7,8 @@ import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,14 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    // 유저 로그아웃
+    @PatchMapping("/user/logout")
+    public ApiResponse<?> logout(@CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response){
+        userService.logout(accessToken, response);
+
+        return ApiResponse.createSuccessNoContent("로그아웃 성공");
+    }
 
     // 유저 로그인 실행
     @Operation(summary = "유저 로그인 API", description = "AccessToken을 통해 로그인을 진행합니다.")

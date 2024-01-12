@@ -38,7 +38,8 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override // 이 주소로 오는 건 토큰 없어도 됨.
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/oauth2/authorization/") || path.startsWith("/swagger-ui/");
+        return path.startsWith("/oauth2/authorization/") || path.startsWith("/swagger-ui/") || path.startsWith("/api-docs")
+                || path.startsWith("/swagger-ui.html/") || path.startsWith("/v3/api-docs");
     }
 
     @Override
