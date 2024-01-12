@@ -1,27 +1,32 @@
 package com.parkchoi.scrum.config;
 
+import com.parkchoi.scrum.util.jwt.JwtFilter;
+import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.oauth.FailureHandler;
 import com.parkchoi.scrum.util.oauth.PrincipalOAuth2UserService;
 import com.parkchoi.scrum.util.oauth.SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfig{
+public class SecurityConfig {
 
     private final CorsConfigurationSource corsConfigurationSource;
     private final PrincipalOAuth2UserService principalOAuth2UserService;
     private final SuccessHandler successHandler;
     private final FailureHandler failureHandler;
+    private final JwtFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,20 +40,24 @@ public class SecurityConfig{
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 // 모든 요청 허용
-                .authorizeHttpRequests(authorize ->{
-                    authorize.anyRequest().permitAll();
+                .authorizeHttpRequests(authorize -> {
+                    // 모든 api로 시작하는 요청은 인증 필요
+                    authorize.requestMatchers("/swagger-ui/**", "/api-docs",  "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html").permitAll();
+                    authorize.anyRequest().authenticated();
                 })
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 // oauth 로그인
-                .oauth2Login((oauth) ->{
+                .oauth2Login((oauth) -> {
                     oauth.successHandler(successHandler);
                     oauth.failureHandler(failureHandler);
                     // oauth 로그인 성공 후 사용자 정보를 가져오기 위함.
                     // 즉 code -> accessToken 과정을 거친 후 동작.
-                    oauth.userInfoEndpoint((userInfo) ->{
+                    oauth.userInfoEndpoint((userInfo) -> {
                         userInfo.userService(principalOAuth2UserService);
                     });
                 });
 
         return http.build();
     }
+
 }
