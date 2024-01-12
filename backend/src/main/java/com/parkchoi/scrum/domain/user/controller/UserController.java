@@ -23,6 +23,7 @@ public class UserController {
     private final UserService userService;
 
     // 유저 로그아웃
+    @Operation(summary = "유저 로그아웃 API", description = "모든 쿠키를 삭제합니다. isOnline = false")
     @PatchMapping("/user/logout")
     public ApiResponse<?> logout(@CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response){
         userService.logout(accessToken, response);
@@ -62,7 +63,6 @@ public class UserController {
         UserInviteInfoResponseDTO userInfoToEmail = userService.findUserInfoToEmail(accessToken, email);
 
         return ApiResponse.createSuccess(userInfoToEmail, "이메일로 유저 조회 성공");
-
     }
 
 }
