@@ -2,21 +2,25 @@ package com.parkchoi.scrum.domain.user.service;
 
 import com.parkchoi.scrum.domain.log.entity.UserLog;
 import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
+import com.parkchoi.scrum.domain.user.dto.request.UserInfoUpdateRequestDTO;
+import com.parkchoi.scrum.domain.user.dto.response.UserNicknameUpdateResponseDTO;
 import com.parkchoi.scrum.domain.user.dto.response.UserInviteInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.dto.response.UserLoginInfoResponseDTO;
+import com.parkchoi.scrum.domain.user.dto.response.UserProfileImageUpdateResponseDTO;
 import com.parkchoi.scrum.domain.user.entity.User;
-import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
+import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Service
@@ -26,6 +30,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserLogRepository userLogRepository;
+    private final S3UploadService s3UploadService;
     private final JwtUtil jwtUtil;
 
 
@@ -102,7 +107,36 @@ public class UserService {
 
             return build;
         }
-
     }
+
+    @Transactional
+    // 유저 닉네임 변경
+    public UserNicknameUpdateResponseDTO updateUserNickname(String accessToken, String nickname){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        user.updateNickname(nickname);
+
+        return new UserNicknameUpdateResponseDTO(nickname);
+    }
+
+    @Transactional
+    public UserProfileImageUpdateResponseDTO updateUserProfileImage(String accessToken, MultipartFile file) throws IOException {
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        String url = s3UploadService.saveFile(file);
+
+        user.updateProfileImage(url);
+
+        return new UserProfileImageUpdateResponseDTO(url);
+    }
+
+
+
 }
 

@@ -42,7 +42,7 @@ public class SecurityConfig {
                 // 모든 요청 허용
                 .authorizeHttpRequests(authorize -> {
                     // 모든 api로 시작하는 요청은 인증 필요
-                    authorize.requestMatchers("/swagger-ui/**", "/api-docs",  "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html").permitAll();
+                    authorize.requestMatchers("/oauth2/authorization/", "/swagger-ui/**", "/api-docs",  "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html").permitAll();
                     authorize.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

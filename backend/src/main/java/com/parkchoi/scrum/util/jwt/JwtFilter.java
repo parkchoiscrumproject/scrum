@@ -38,8 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override // 이 주소로 오는 건 토큰 없어도 됨.
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/oauth2/authorization/") || path.startsWith("/swagger-ui/") || path.startsWith("/api-docs")
-                || path.startsWith("/swagger-ui.html/") || path.startsWith("/v3/api-docs");
+        return path.isEmpty();
     }
 
     @Override
@@ -48,6 +47,8 @@ public class JwtFilter extends OncePerRequestFilter {
         // 헤더에서 액세스 토큰 추출
         Cookie[] cookies = request.getCookies();
         String accessToken = null;
+        
+        log.info("jwt 필터 동작");
 
         // 쿠키 자체가 없으면 401 에러 발생
         if(cookies == null){
