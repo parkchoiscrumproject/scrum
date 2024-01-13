@@ -1,14 +1,12 @@
 package com.parkchoi.scrum.config;
 
 import com.parkchoi.scrum.util.jwt.JwtFilter;
-import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.oauth.FailureHandler;
 import com.parkchoi.scrum.util.oauth.PrincipalOAuth2UserService;
 import com.parkchoi.scrum.util.oauth.SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
