@@ -1,5 +1,6 @@
 package com.parkchoi.scrum.util.jwt;
 
+import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private final UserService userService;
@@ -31,10 +34,11 @@ public class JwtFilter extends OncePerRequestFilter {
     private Long refreshTokenTime;
     private final JwtUtil jwtUtil;
 
+
     @Override // 이 주소로 오는 건 토큰 없어도 됨.
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/oauth2/authorization/") || path.startsWith("/api/userinfo") || path.startsWith("/api/user/{nickname}/existence");
+        return path.isEmpty();
     }
 
     @Override
@@ -43,6 +47,23 @@ public class JwtFilter extends OncePerRequestFilter {
         // 헤더에서 액세스 토큰 추출
         Cookie[] cookies = request.getCookies();
         String accessToken = null;
+        
+        log.info("jwt 필터 동작");
+
+        // 쿠키 자체가 없으면 401 에러 발생
+        if(cookies == null){
+            log.error("쿠키가 존재하지 않습니다.");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
+            response.setContentType("application/json"); // 컨텐츠 타입을 JSON으로 설정
+            response.setCharacterEncoding("UTF-8"); // 문자 인코딩 설정
+            response.getWriter().write("{\n" +
+                    "  \"status\": \"error\",\n" +
+                    "  \"data\": null,\n" +
+                    "  \"message\": \"쿠키가 존재하지 않습니다.\"\n" +
+                    "}"); // JSON 형식의 에러 메시지 작성
+            return; // 여기서 처리 종료
+        }
+
         for (Cookie c : cookies) {
             if (c.getName().equals("accessToken")) {
                 accessToken = c.getValue();
@@ -50,13 +71,18 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        log.info("accessToken : {}", accessToken);
-
         // 토큰이 null인 경우(없는 경우)
         if (accessToken == null) {
-            log.error("액세스 토큰이 null입니다.");
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "액세스 토큰 null 발생");
-            return;
+            log.error("액세스 토큰이 없습니다.");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
+            response.setContentType("application/json"); // 컨텐츠 타입을 JSON으로 설정
+            response.setCharacterEncoding("UTF-8"); // 문자 인코딩 설정
+            response.getWriter().write("{\n" +
+                    "  \"status\": \"error\",\n" +
+                    "  \"data\": null,\n" +
+                    "  \"message\": \"액세스 토큰이 없습니다.\"\n" +
+                    "}"); // JSON 형식의 에러 메시지 작성
+            return; // 여기서 처리 종료
         }
 
         // userId 토큰에서 꺼냄.

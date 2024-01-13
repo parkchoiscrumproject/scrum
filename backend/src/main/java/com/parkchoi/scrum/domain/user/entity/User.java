@@ -51,8 +51,24 @@ public class User {
         this.isOnline = true;
     }
 
+    // 온라인 상태 변경
     public void isOnlineTrue(){
         this.isOnline = true;
+    }
+
+    // 오프라인 상태 변경
+    public void isOnlineFalse(){
+        this.isOnline = false;
+    }
+
+    // 닉네임 변경
+    public void updateNickname(String nickname){
+        this.nickname = nickname;
+    }
+
+    // 프로필 사진 변경
+    public void updateProfileImage(String profileImage){
+        this.profileImage = profileImage;
     }
 
 }
