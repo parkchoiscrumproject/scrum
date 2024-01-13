@@ -10,12 +10,13 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @OpenAPIDefinition(
         info = @Info(
                 title = "Scrum API 문서",
-                description = "스크럼 프로젝트 문서입니다.",
+                description = "스크럼 프로젝트 문서입니다.\n" +
+                        "http://localhost:8080/oauth2/authorization/kakao 여기 주소를 통해 쿠키 생성을 부탁드립니다.(카카오톡 소셜로그인)",
+
                 version = "v1.0",
                 contact = @Contact(
                         name = "dev",
@@ -23,9 +24,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
                 )
         ),
         tags = {
-                @Tag(name = "01.User", description = "사용자 기능"),
-                @Tag(name = "~~", description = "~~"),
-                @Tag(name = "~~", description = "~~"),
+                @Tag(name = "01.User", description = "사용자 기능")
         },
         security = {
                 //여기서 name은 밑의 이름과 같아야 밑에서 설명한 securityScheme를 사용한다는 뜻입니다.

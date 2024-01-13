@@ -61,4 +61,14 @@ public class User {
         this.isOnline = false;
     }
 
+    // 닉네임 변경
+    public void updateNickname(String nickname){
+        this.nickname = nickname;
+    }
+
+    // 프로필 사진 변경
+    public void updateProfileImage(String profileImage){
+        this.profileImage = profileImage;
+    }
+
 }
