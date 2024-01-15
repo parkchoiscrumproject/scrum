@@ -3,10 +3,14 @@ package com.parkchoi.scrum.domain.team.controller;
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.service.TeamService;
 import com.parkchoi.scrum.util.api.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api")
@@ -19,12 +23,15 @@ public class TeamController {
 
 
     // 팀 생성
-//    @PostMapping("team/create")
-//    public ApiResponse<?> createTeam(
-//            @CookieValue(name = "accessToken",required = false) String accessToken,
-//            @RequestBody CreateTeamRequestDTO dto){
-//     boolean result = teamService.createTeam(accessToken, dto);
-//
-//     return ApiResponse.createSuccess(result, "");
-//    }
+    @Operation(summary = "팀 생성 API")
+    @PostMapping("team")
+    public ApiResponse<?> createTeam(
+            @CookieValue(name = "accessToken",required = false) String accessToken,
+            @RequestPart MultipartFile file,
+            @RequestPart CreateTeamRequestDTO dto) throws IOException {
+
+        teamService.createTeam(accessToken, file, dto);
+
+     return ApiResponse.createSuccessNoContent("팀 생성 성공");
+    }
 }
