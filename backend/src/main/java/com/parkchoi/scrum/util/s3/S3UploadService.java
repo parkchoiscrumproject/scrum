@@ -48,4 +48,15 @@ public class S3UploadService {
         }
         return false;
     }
+
+    //사진 삭제
+    public void deleteFile(String imageUrl){
+        if(imageUrl == null || imageUrl.isEmpty()){
+            return;
+        }
+
+        String key = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+
+        amazonS3.deleteObject(bucket, key);
+    }
 }
