@@ -1,5 +1,6 @@
 package com.parkchoi.scrum.domain.exception.controller;
 
+import com.parkchoi.scrum.domain.team.exception.NonParticipantUserException;
 import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
 import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
@@ -32,6 +33,12 @@ public class GlobalExceptionHandler {
     // 팀 없음
     @ExceptionHandler(TeamNotFoundException.class)
     public ApiResponse<?> handleTeamNotFoundException(TeamNotFoundException e) {
+        return ApiResponse.createError(e.getMessage());
+    }
+
+    // 특정 유저가 팀에 속하지 않음
+    @ExceptionHandler(NonParticipantUserException.class)
+    public ApiResponse<?> handleNonParticipantUserException(NonParticipantUserException e) {
         return ApiResponse.createError(e.getMessage());
     }
 }
