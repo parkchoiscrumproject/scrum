@@ -1,8 +1,10 @@
 package com.parkchoi.scrum.domain.team.service;
 
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
+import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
+import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class TeamService {
 
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
+    private final InviteTeamListRepository inviteTeamListRepository;
     private final S3UploadService s3UploadService;
     private final JwtUtil jwtUtil;
 
@@ -54,6 +58,20 @@ public class TeamService {
             teamRepository.save(team);
 
             //팀 초대
+            List<Long> inviteList = dto.getInviteList();
+            for(Long inviteUserId : inviteList){
+                User inviteeUser  = userRepository.findById(inviteUserId)
+                        .orElseThrow(()-> new UserNotFoundException("초대 대상 유저 없음."));
+
+                InviteTeamList inviteTeamList = InviteTeamList.builder()
+                        .user(inviteeUser)
+                        .team(team)
+                        .build();
+                inviteTeamListRepository.save(inviteTeamList);
+            }
+
+
+
 
         }catch (Exception e) {
             if(imageUrl != null){
