@@ -9,14 +9,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -32,13 +35,14 @@ public class JwtFilter extends OncePerRequestFilter {
     @Value("#{${jwt.refresh-validity}}")
     private Long refreshTokenTime;
     private final JwtUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
 
 
     @Override // 이 주소로 오는 건 토큰 없어도 됨.
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         return path.startsWith("/swagger-resoureces/") || path.startsWith("/swagger-ui/") || path.startsWith("/v3/api-docs/")
-                || path.startsWith("/api-docs") || path.startsWith("/favicon.ico") ;
+                || path.startsWith("/api-docs") || path.startsWith("/favicon.ico");
     }
 
     @Override
@@ -51,7 +55,7 @@ public class JwtFilter extends OncePerRequestFilter {
         log.info("jwt 필터 동작");
 
         // 쿠키 자체가 없으면 401 에러 발생
-        if(cookies == null){
+        if (cookies == null) {
             log.error("쿠키가 존재하지 않습니다.");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
             response.setContentType("application/json"); // 컨텐츠 타입을 JSON으로 설정
@@ -89,52 +93,76 @@ public class JwtFilter extends OncePerRequestFilter {
         Long userId = jwtUtil.getUserId(accessToken);
         log.info("userId:{}", userId);
 
-//        // 토큰 만료됐는지 확인
-//        if (jwtUtil.isExpired(token)) {
-//            log.error("액세스 토큰이 만료되었습니다.");
-//
-//            Long userId = jwtUtil.getUserId(token);
-//
-//            Cookie[] cookies = request.getCookies();
-//            if (cookies != null) {
-//                for (Cookie cookie : cookies) {
-//                    if ("refreshToken".equals(cookie.getName())) {
-//                        String refreshTokenCookie = cookie.getValue();
-//                        String result = jwtUtil.checkRefreshToken(refreshTokenCookie, userId);
-//                        if (result.equals("리프레시 토큰 만료")) {
-//                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "리프레시 토큰 만료");
-//                            return;
-//                        } else if (result.equals("리프레시 토큰 불일치")) {
-//                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "리프레시 토큰 불일치");
-//                            return;
-//                        }
-//                    }
-//                }
-//            }
-//            String accessJwt = jwtUtil.createAccessJwt(userId, secretKey);
-//            String refreshJwt = jwtUtil.createRefreshToken(userId, secretKey);
-//
-//            Cookie cookie = new Cookie("refreshToken", refreshJwt);
-//
-//            // expires in 7 days
-//            cookie.setMaxAge(14 * 24 * 60 * 60);
-//
-//            // optional properties
-//            cookie.setSecure(false); // 이거 https 적용해서 서버로 올리면 true로 바꿔야한다. 지금은 로컬에서 테스트라서 false로 해놓음
-//            cookie.setHttpOnly(true); // http only로 설정해서 javascript로 접근 못하도록 막음
-//            cookie.setPath("/");
-//
-//            // add cookie to response
-//            response.addCookie(cookie);
-//
-//            String jsonResponse = "{\"accessToken\":\"" + accessJwt + "\"}";
-//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//            response.setContentType("application/json");
-//            response.setCharacterEncoding("UTF-8");
-//            response.getWriter().write(jsonResponse);
-//
-//            return;
-//        }
+        // 토큰이 만료됐으면
+        if (jwtUtil.isExpired(toString())) {
+            // 리프레시 토큰 탐색
+            String refreshToken = null;
+            for (Cookie c : cookies) {
+                if (c.getName().equals("refreshToken")) {
+                    refreshToken = c.getValue();
+                    break;
+                }
+            }
+            // 만약에 null이면
+            if (refreshToken == null) {
+                log.error("리프레시 토큰이 존재하지 않습니다.");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
+                response.setContentType("application/json"); // 컨텐츠 타입을 JSON으로 설정
+                response.setCharacterEncoding("UTF-8"); // 문자 인코딩 설정
+                response.getWriter().write("{\n" +
+                        "  \"status\": \"error\",\n" +
+                        "  \"data\": null,\n" +
+                        "  \"message\": \"리프레시 토큰이 존재하지 않습니다.\"\n" +
+                        "}"); // JSON 형식의 에러 메시지 작성
+                return; // 여기서 처리 종료
+            }
+
+            String key = "refreshToken:" + userId;
+            String result = jwtUtil.checkRefreshToken(key, refreshToken, response);
+
+            if (result.equals("리프레시 토큰 만료") || result.equals("리프레시 토큰 불일치")) {
+                log.error("리프레시 토큰 문제 발생");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
+                response.setContentType("application/json"); // 컨텐츠 타입을 JSON으로 설정
+                response.setCharacterEncoding("UTF-8"); // 문자 인코딩 설정
+                response.getWriter().write("{\n" +
+                        "  \"status\": \"error\",\n" +
+                        "  \"data\": null,\n" +
+                        "  \"message\": \"리프레시 토큰 문제 발생(로그아웃 진행)\"\n" +
+                        "}"); // JSON 형식의 에러 메시지 작성
+                return; // 여기서 처리 종료
+            } else {
+                String reAccessToken = jwtUtil.createAccessToken(userId);
+                String reRefreshToken = jwtUtil.createRefreshToken(userId);
+
+                // 액세스 토큰을 위한 쿠키 생성
+                Cookie accessTokenCookie = new Cookie("accessToken", reAccessToken);
+                accessTokenCookie.setHttpOnly(true);
+                accessTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+                accessTokenCookie.setPath("/");
+
+                // 리프레시 토큰을 위한 쿠키 생성
+                Cookie refreshTokenCookie = new Cookie("refreshToken", reRefreshToken);
+                refreshTokenCookie.setHttpOnly(true);
+                refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+                refreshTokenCookie.setPath("/");
+
+                // 쿠키에 토큰 저장
+                response.addCookie(refreshTokenCookie);
+                response.addCookie(accessTokenCookie);
+
+                log.error("액세스 토큰 재발급");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
+                response.setContentType("application/json"); // 컨텐츠 타입을 JSON으로 설정
+                response.setCharacterEncoding("UTF-8"); // 문자 인코딩 설정
+                response.getWriter().write("{\n" +
+                        "  \"status\": \"error\",\n" +
+                        "  \"data\": null,\n" +
+                        "  \"message\": \"액세스 토큰 재발급\"\n" +
+                        "}"); // JSON 형식의 에러 메시지 작성
+                return; // 여기서 처리 종료
+            }
+        }
 
 
         // 권한 부여
@@ -144,5 +172,12 @@ public class JwtFilter extends OncePerRequestFilter {
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         filterChain.doFilter(request, response);
+    }
+
+    // 리다이렉트 주소
+    private String makeRedirectUrl() {
+        return UriComponentsBuilder.fromUriString("http://localhost:3000/refreshToken")
+                .encode(StandardCharsets.UTF_8)
+                .build().toUriString();
     }
 }
