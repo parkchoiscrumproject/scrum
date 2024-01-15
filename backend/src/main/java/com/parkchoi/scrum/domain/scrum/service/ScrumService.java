@@ -34,7 +34,7 @@ public class ScrumService {
 
     // 스크럼 생성
     @Transactional
-    public void createScrum(String accessToken, Long teamId, CreateScrumRequestDTO dto){
+    public void createScrum(String accessToken, Long teamId, CreateScrumRequestDTO dto) {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
@@ -43,30 +43,30 @@ public class ScrumService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
 
-        try{
-        // 스크럼 생성
-        Scrum scrum = Scrum.builder()
-                .name(dto.getName())
-                .maxMember(dto.getMaxMember())
-                .currentMember(1)
-                .team(team)
-                .user(user).build();
-        scrumRepository.save(scrum);
+        try {
+            // 스크럼 생성
+            Scrum scrum = Scrum.builder()
+                    .name(dto.getName())
+                    .maxMember(dto.getMaxMember())
+                    .currentMember(1)
+                    .team(team)
+                    .user(user).build();
+            scrumRepository.save(scrum);
 
-        // 스크럼 정보 생성
-        ScrumInfo scrumInfo = ScrumInfo.builder()
-                .scrum(scrum)
-                .subject(dto.getSubject())
-                .isStart(false).build();
-        scrumInfoRepository.save(scrumInfo);
+            // 스크럼 정보 생성
+            ScrumInfo scrumInfo = ScrumInfo.builder()
+                    .scrum(scrum)
+                    .subject(dto.getSubject())
+                    .isStart(false).build();
+            scrumInfoRepository.save(scrumInfo);
 
-        // 스크럼 참여자 정보 생성
-        ScrumParticipant scrumParticipant = ScrumParticipant.builder()
-                .scrum(scrum)
-                .user(user).build();
-        scrumParticipantRepository.save(scrumParticipant);
+            // 스크럼 참여자 정보 생성
+            ScrumParticipant scrumParticipant = ScrumParticipant.builder()
+                    .scrum(scrum)
+                    .user(user).build();
+            scrumParticipantRepository.save(scrumParticipant);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new FailCreateScrumException("스크럼 생성에 실패하였습니다.");
         }
 

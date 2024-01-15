@@ -45,6 +45,5 @@ public class Scrum {
         this.currentMember = currentMember;
         this.maxMember = maxMember;
     }
-
 }
 
