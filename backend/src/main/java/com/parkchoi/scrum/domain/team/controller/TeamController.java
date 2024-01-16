@@ -29,7 +29,8 @@ public class TeamController {
             @CookieValue(name = "accessToken",required = false) String accessToken,
             @RequestPart(value = "file") MultipartFile file,
             @RequestPart(value = "dto") CreateTeamRequestDTO dto) throws IOException {
-        
+
+        System.out.println("들어옴");
         teamService.createTeam(accessToken, file, dto);
 
      return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("성공"));
