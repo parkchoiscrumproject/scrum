@@ -4,16 +4,20 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JwtUtil {
 
     @Value("${jwt.secretkey}")
@@ -31,7 +35,7 @@ public class JwtUtil {
             return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token)
                     .getBody().get("userId", Long.class);
         } catch (ExpiredJwtException e) {
-            // 만료된 JWT에서도 claims를 가져올 수 있습니다.
+            // 만료된 JWT에서도 userId는 가져옴.
             return e.getClaims().get("userId", Long.class);
         }
     }
@@ -81,6 +85,21 @@ public class JwtUtil {
                 TimeUnit.MILLISECONDS
         );
         return refreshToken;
+    }
+
+    // 리프레시 토큰 확인(redis)
+    public String checkRefreshToken(String key, String refreshToken, HttpServletResponse response) throws IOException {
+        String redisRefreshToken = redisTemplate.opsForValue().get(key);
+        // 만약에 리프레시 토큰이 redis에 없으면(만료)
+        if(redisRefreshToken == null){
+            return "리프레시 토큰 만료";
+        }
+        // 만약에 리프레시 토큰이 일치하지 않으면
+        else if(!redisRefreshToken.equals(refreshToken)){
+            return "리프레시 토큰 불일치";
+        }else{
+            return "리프레시 토큰 일치";
+        }
     }
 
 }
