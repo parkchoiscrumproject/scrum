@@ -41,7 +41,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> {
                     // 모든 api로 시작하는 요청은 인증 필요
                     authorize.requestMatchers("/oauth2/authorization/", "/swagger-ui/**", "/api-docs",  "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html").permitAll();
-                    authorize.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 // oauth 로그인
