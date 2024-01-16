@@ -46,6 +46,7 @@ public class TeamService {
             //파일 저장
             imageUrl = s3UploadService.saveFile(file);
 
+            System.out.println(dto.toString());
             //팀 생성
             Team team = Team.builder()
                     .name(dto.getTeamInfoDTO().getName())
@@ -54,6 +55,8 @@ public class TeamService {
                     .maxMember(dto.getTeamInfoDTO().getMaxMember())
                     .user(user)
                     .teamProfileImage(imageUrl).build();
+
+            log.info("팀 생성 성공");
             teamRepository.save(team);
 
             //팀 초대
@@ -67,8 +70,10 @@ public class TeamService {
                         .build();
                 inviteTeamListRepository.save(inviteTeamList);
             }
+            log.info("팀 초대 성공");
 
         }catch (Exception e) {
+            log.error("팀 생성 실패");
             if(imageUrl != null){
                 s3UploadService.deleteFile(imageUrl);
             }
