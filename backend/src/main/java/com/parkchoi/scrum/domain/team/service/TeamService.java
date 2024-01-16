@@ -56,24 +56,24 @@ public class TeamService {
                     .user(user)
                     .teamProfileImage(imageUrl).build();
 
-            log.info("팀 생성 성공");
             teamRepository.save(team);
 
             //팀 초대
             List<Long> inviteList = dto.getInviteList();
-            for(Long inviteUserId : inviteList){
-                User inviteeUser  = userRepository.findById(inviteUserId).get();
 
-                InviteTeamList inviteTeamList = InviteTeamList.builder()
-                        .user(inviteeUser)
-                        .team(team)
-                        .build();
-                inviteTeamListRepository.save(inviteTeamList);
+            if(inviteList!=null && !inviteList.isEmpty()){
+                for(Long inviteUserId : inviteList){
+                    User inviteeUser  = userRepository.findById(inviteUserId).get();
+
+                    InviteTeamList inviteTeamList = InviteTeamList.builder()
+                            .user(inviteeUser)
+                            .team(team)
+                            .build();
+                    inviteTeamListRepository.save(inviteTeamList);
+                }
             }
-            log.info("팀 초대 성공");
 
         }catch (Exception e) {
-            log.error("팀 생성 실패");
             if(imageUrl != null){
                 s3UploadService.deleteFile(imageUrl);
             }
