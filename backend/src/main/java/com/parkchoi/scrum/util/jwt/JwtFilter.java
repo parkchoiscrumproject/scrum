@@ -94,7 +94,7 @@ public class JwtFilter extends OncePerRequestFilter {
         log.info("userId:{}", userId);
 
         // 토큰이 만료됐으면
-        if (jwtUtil.isExpired(toString())) {
+        if (jwtUtil.isExpired(accessToken)) {
             // 리프레시 토큰 탐색
             String refreshToken = null;
             for (Cookie c : cookies) {

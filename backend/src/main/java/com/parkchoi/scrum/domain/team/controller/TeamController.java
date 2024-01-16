@@ -24,12 +24,12 @@ public class TeamController {
 
     // 팀 생성
     @Operation(summary = "팀 생성 API")
-    @PostMapping("team")
+    @PostMapping("/team")
     public ApiResponse<?> createTeam(
             @CookieValue(name = "accessToken",required = false) String accessToken,
-            @RequestPart MultipartFile file,
-            @RequestPart CreateTeamRequestDTO dto) throws IOException {
-
+            @RequestPart(value = "file") MultipartFile file,
+            @RequestPart(value = "dto") CreateTeamRequestDTO dto) throws IOException {
+        System.out.println(dto.toString());
         teamService.createTeam(accessToken, file, dto);
 
      return ApiResponse.createSuccessNoContent("팀 생성 성공");
