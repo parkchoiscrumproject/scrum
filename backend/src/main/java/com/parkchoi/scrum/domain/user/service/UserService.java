@@ -74,6 +74,7 @@ public class UserService {
         // 유저 로그인 로그 생성
         UserLog build = UserLog.builder()
                 .user(user).build();
+
         userLogRepository.save(build);
 
         UserLoginInfoResponseDTO userInfoDTO = UserLoginInfoResponseDTO.builder()
