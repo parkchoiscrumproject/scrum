@@ -42,7 +42,6 @@ public class TeamService {
 
         String imageUrl = null;
 
-
         try{
             //파일 저장
             imageUrl = s3UploadService.saveFile(file);
@@ -60,8 +59,7 @@ public class TeamService {
             //팀 초대
             List<Long> inviteList = dto.getInviteList();
             for(Long inviteUserId : inviteList){
-                User inviteeUser  = userRepository.findById(inviteUserId)
-                        .orElseThrow(()-> new UserNotFoundException("초대 대상 유저 없음."));
+                User inviteeUser  = userRepository.findById(inviteUserId).get();
 
                 InviteTeamList inviteTeamList = InviteTeamList.builder()
                         .user(inviteeUser)
@@ -69,9 +67,6 @@ public class TeamService {
                         .build();
                 inviteTeamListRepository.save(inviteTeamList);
             }
-
-
-
 
         }catch (Exception e) {
             if(imageUrl != null){
