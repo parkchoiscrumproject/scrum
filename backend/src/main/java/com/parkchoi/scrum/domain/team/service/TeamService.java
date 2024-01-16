@@ -42,7 +42,6 @@ public class TeamService {
 
         String imageUrl = null;
 
-
         try{
             //파일 저장
             imageUrl = s3UploadService.saveFile(file);

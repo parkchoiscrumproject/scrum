@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,17 +22,16 @@ public class TeamController {
 
     private final TeamService teamService;
 
-
     // 팀 생성
     @Operation(summary = "팀 생성 API")
     @PostMapping("/team")
-    public ApiResponse<?> createTeam(
+    public ResponseEntity<ApiResponse<?>> createTeam(
             @CookieValue(name = "accessToken",required = false) String accessToken,
             @RequestPart(value = "file") MultipartFile file,
             @RequestPart(value = "dto") CreateTeamRequestDTO dto) throws IOException {
-        System.out.println(dto.toString());
+        
         teamService.createTeam(accessToken, file, dto);
 
-     return ApiResponse.createSuccessNoContent("팀 생성 성공");
+     return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("성공"));
     }
 }
