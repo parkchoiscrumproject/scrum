@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class CreateScrumRequestDTO {
-    private Long userId;
     private String name;
     private int maxMember;
     private String subject;
