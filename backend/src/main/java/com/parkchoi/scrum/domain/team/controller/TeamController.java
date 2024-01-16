@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.team.controller;
 
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
+import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
 import com.parkchoi.scrum.domain.team.service.TeamService;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,15 +24,31 @@ public class TeamController {
     private final TeamService teamService;
 
     // 팀 생성
-    @Operation(summary = "팀 생성 API")
-    @PostMapping("team")
+    @Operation(summary = "팀 생성 API", description = "파일(사진)과 팀 정보 초대 리스트를 입력하여 진행합니다.")
+    @PostMapping("/team")
     public ResponseEntity<ApiResponse<?>> createTeam(
             @CookieValue(name = "accessToken",required = false) String accessToken,
             @RequestPart(value = "file") MultipartFile file,
             @RequestPart(value = "dto") CreateTeamRequestDTO dto) throws IOException {
 
-        teamService.createTeam(accessToken, file, dto);
+        CreateTeamResponseDTO result = teamService.createTeam(accessToken, file, dto);
 
-     return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("성공"));
+     return ResponseEntity.status(201).body(ApiResponse.createSuccess(result,"팀 생성 성공"));
     }
+
+
+
+
+    // 팀 삭제
+//    @Operation(summary = "팀 삭제 API", description = "파라미터로 넣은 team_id를 받아서 팀 삭제를 진행합니다.")
+//    @DeleteMapping("/team/{team_id}")
+//    public ResponseEntity<ApiResponse<?>> deleteTeam(
+//            @CookieValue(name = "accessToken", required = false) String accessToken,
+//            @RequestParam String team_id){
+//
+//
+//
+//
+//        return ResponseEntity.status(204).body(ApiResponse.createSuccessNoContent())
+//    }
 }

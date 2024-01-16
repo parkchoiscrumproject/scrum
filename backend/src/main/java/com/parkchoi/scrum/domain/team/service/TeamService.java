@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.team.service;
 
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
+import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
@@ -34,7 +35,7 @@ public class TeamService {
     //팀 생성
 
     @Transactional
-    public void createTeam(String accessToken, MultipartFile file, CreateTeamRequestDTO dto) throws IOException {
+    public CreateTeamResponseDTO createTeam(String accessToken, MultipartFile file, CreateTeamRequestDTO dto) throws IOException {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
@@ -46,7 +47,6 @@ public class TeamService {
             //파일 저장
             imageUrl = s3UploadService.saveFile(file);
 
-            System.out.println(dto.toString());
             //팀 생성
             Team team = Team.builder()
                     .name(dto.getTeamInfoDTO().getName())
@@ -56,27 +56,32 @@ public class TeamService {
                     .user(user)
                     .teamProfileImage(imageUrl).build();
 
-            log.info("팀 생성 성공");
             teamRepository.save(team);
 
             //팀 초대
             List<Long> inviteList = dto.getInviteList();
-            for(Long inviteUserId : inviteList){
-                User inviteeUser  = userRepository.findById(inviteUserId).get();
 
-                InviteTeamList inviteTeamList = InviteTeamList.builder()
-                        .user(inviteeUser)
-                        .team(team)
-                        .build();
-                inviteTeamListRepository.save(inviteTeamList);
+            if(inviteList!=null && !inviteList.isEmpty()){
+                for(Long inviteUserId : inviteList){
+                    User inviteeUser  = userRepository.findById(inviteUserId).get();
+
+                    InviteTeamList inviteTeamList = InviteTeamList.builder()
+                            .user(inviteeUser)
+                            .team(team)
+                            .build();
+                    inviteTeamListRepository.save(inviteTeamList);
+                }
             }
-            log.info("팀 초대 성공");
+            log.info("여기로성공??");
+
+            return new CreateTeamResponseDTO(team.getName(),imageUrl);
+
 
         }catch (Exception e) {
-            log.error("팀 생성 실패");
             if(imageUrl != null){
                 s3UploadService.deleteFile(imageUrl);
             }
+            log.info("여기로옴?");
             throw new FailCreateTeamException("팀 생성에 실패하였습니다.");
         }
     }
