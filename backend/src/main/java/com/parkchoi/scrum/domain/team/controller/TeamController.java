@@ -31,7 +31,7 @@ public class TeamController {
             @RequestPart(value = "file") MultipartFile file,
             @RequestPart(value = "dto") CreateTeamRequestDTO dto) throws IOException {
 
-        log.info("들어옴?");
+
         CreateTeamResponseDTO result = teamService.createTeam(accessToken, file, dto);
 
      return ResponseEntity.status(201).body(ApiResponse.createSuccess(result,"팀 생성 성공"));
