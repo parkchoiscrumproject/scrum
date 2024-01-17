@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ScrumRoomDTO {
+    private Long scrumId;
     private String name;
     private String profileImage;
     private String nickname;

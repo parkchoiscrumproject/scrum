@@ -6,7 +6,10 @@ import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
 import com.parkchoi.scrum.domain.scrum.entity.ScrumInfo;
 import com.parkchoi.scrum.domain.scrum.entity.ScrumParticipant;
+import com.parkchoi.scrum.domain.scrum.exception.EndScrumException;
 import com.parkchoi.scrum.domain.scrum.exception.FailCreateScrumException;
+import com.parkchoi.scrum.domain.scrum.exception.MaxMemberScrumException;
+import com.parkchoi.scrum.domain.scrum.exception.ScrumNotFoundException;
 import com.parkchoi.scrum.domain.scrum.repository.ScrumInfoRepository;
 import com.parkchoi.scrum.domain.scrum.repository.ScrumParticipantRepository;
 import com.parkchoi.scrum.domain.scrum.repository.ScrumRepository;
@@ -102,6 +105,7 @@ public class ScrumService {
 
         for(Scrum s : scrums){
             ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.builder()
+                    .scrumId(s.getId())
                     .name(s.getName())
                     .profileImage(s.getUser().getProfileImage())
                     .maxMember(s.getMaxMember())
@@ -112,6 +116,47 @@ public class ScrumService {
         }
 
         return new ScrumRoomListResponseDTO(scrumRoomDTOList);
+    }
+
+    @Transactional
+    // 스크럼 참여
+    public void enterScrum(String accessToken, Long teamId, Long scrumId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+
+        Scrum scrum = scrumRepository.findById(scrumId)
+                .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
+
+        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
+        // 이미 종료된 스크럼이면
+        if(scrumInfo.getEndTime() != null){
+            throw new EndScrumException("이미 종료된 스크럼입니다.");
+        }
+
+        Optional<ScrumParticipant> byScrumAndUser = scrumParticipantRepository.findByUserAndScrum(user, scrum);
+        // 아직 참여하지 않은 스크럼이면
+        if(byScrumAndUser.isEmpty()){
+            // 멤버가 꽉찼으면
+            if(scrum.getCurrentMember() == scrum.getMaxMember()){
+                throw new MaxMemberScrumException("참여 최대 인원에 도달했습니다.");
+            }
+            // 참여 생성
+            ScrumParticipant scrumParticipant = ScrumParticipant.builder()
+                    .scrum(scrum)
+                    .user(user).build();
+            scrumParticipantRepository.save(scrumParticipant);
+            // 현재 인원 증가
+            scrum.plusCurrentMember();
+        }
+        // 나중에 화면에 필요한 정보 리턴
     }
 
 }
