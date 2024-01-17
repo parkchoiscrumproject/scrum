@@ -72,7 +72,6 @@ public class TeamService {
                     inviteTeamListRepository.save(inviteTeamList);
                 }
             }
-            log.info("여기로성공??");
 
             return new CreateTeamResponseDTO(team.getName(),imageUrl);
 
@@ -81,7 +80,6 @@ public class TeamService {
             if(imageUrl != null){
                 s3UploadService.deleteFile(imageUrl);
             }
-            log.info("여기로옴?");
             throw new FailCreateTeamException("팀 생성에 실패하였습니다.");
         }
     }

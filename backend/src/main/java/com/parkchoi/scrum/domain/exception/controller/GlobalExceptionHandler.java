@@ -1,5 +1,8 @@
 package com.parkchoi.scrum.domain.exception.controller;
 
+import com.parkchoi.scrum.domain.scrum.exception.EndScrumException;
+import com.parkchoi.scrum.domain.scrum.exception.MaxMemberScrumException;
+import com.parkchoi.scrum.domain.scrum.exception.ScrumNotFoundException;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
 import com.parkchoi.scrum.domain.team.exception.NonParticipantUserException;
 import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
@@ -48,5 +51,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FailCreateTeamException.class)
     public ResponseEntity<ApiResponse<?>> handleFailCreateTeamException(FailCreateTeamException e) {
         return ResponseEntity.status(500).body(ApiResponse.createServerError(e.getMessage()));
+    }
+
+    // 스크럼 없음
+    @ExceptionHandler(ScrumNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleScrumNotFoundException(ScrumNotFoundException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createServerError(e.getMessage()));
+    }
+
+    // 종료된 스크럼
+    @ExceptionHandler(EndScrumException.class)
+    public ResponseEntity<ApiResponse<?>> handleEndScrumException(EndScrumException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createServerError(e.getMessage()));
+    }
+
+    // 멤버가 꽉 찬 스크럼
+    @ExceptionHandler(MaxMemberScrumException.class)
+    public ResponseEntity<ApiResponse<?>> handleMaxMemberScrumException(MaxMemberScrumException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createServerError(e.getMessage()));
     }
 }

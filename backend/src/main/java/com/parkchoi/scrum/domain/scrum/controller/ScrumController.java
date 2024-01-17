@@ -44,4 +44,17 @@ public class ScrumController {
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(scrums, "스크럼 조회 성공"));
     }
+
+    // 스크럼 참여
+    @Operation(summary = "스크럼 참여 API", description = "현재 유저가 특정 스크럼에 참여합니다.")
+    @PostMapping("team/{team_id}/scrum/{scrum_id}")
+    public ResponseEntity<ApiResponse<?>> enterScrum(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId,
+            @PathVariable(name = "scrum_id") Long scrumId
+    ){
+        scrumService.enterScrum(accessToken, teamId, scrumId);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼 참여 성공"));
+    }
 }

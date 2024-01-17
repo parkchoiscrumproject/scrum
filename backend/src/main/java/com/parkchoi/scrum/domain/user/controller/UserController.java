@@ -68,7 +68,6 @@ public class UserController {
     public ResponseEntity<ApiResponse<?>> updateUserNickname(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestParam String nickname){
-
         UserNicknameUpdateResponseDTO result = userService.updateUserNickname(accessToken, nickname);
         return ResponseEntity.status(201).body(ApiResponse.createSuccess(result, "유저 닉네임 변경 성공"));
     }
