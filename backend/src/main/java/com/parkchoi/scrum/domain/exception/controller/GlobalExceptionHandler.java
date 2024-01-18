@@ -1,8 +1,6 @@
 package com.parkchoi.scrum.domain.exception.controller;
 
-import com.parkchoi.scrum.domain.scrum.exception.EndScrumException;
-import com.parkchoi.scrum.domain.scrum.exception.MaxMemberScrumException;
-import com.parkchoi.scrum.domain.scrum.exception.ScrumNotFoundException;
+import com.parkchoi.scrum.domain.scrum.exception.*;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
 import com.parkchoi.scrum.domain.team.exception.NonParticipantUserException;
 import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
@@ -56,18 +54,30 @@ public class GlobalExceptionHandler {
     // 스크럼 없음
     @ExceptionHandler(ScrumNotFoundException.class)
     public ResponseEntity<ApiResponse<?>> handleScrumNotFoundException(ScrumNotFoundException e) {
-        return ResponseEntity.status(404).body(ApiResponse.createServerError(e.getMessage()));
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 
     // 종료된 스크럼
     @ExceptionHandler(EndScrumException.class)
     public ResponseEntity<ApiResponse<?>> handleEndScrumException(EndScrumException e) {
-        return ResponseEntity.status(404).body(ApiResponse.createServerError(e.getMessage()));
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 
     // 멤버가 꽉 찬 스크럼
     @ExceptionHandler(MaxMemberScrumException.class)
     public ResponseEntity<ApiResponse<?>> handleMaxMemberScrumException(MaxMemberScrumException e) {
-        return ResponseEntity.status(404).body(ApiResponse.createServerError(e.getMessage()));
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 이미 삭제된 스크럼
+    @ExceptionHandler(RemoveScrumException.class)
+    public ResponseEntity<ApiResponse<?>> handleRemoveScrumException(RemoveScrumException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 현재 유저가 스크럼의 리더가 아님
+    @ExceptionHandler(NoLeaderUserException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoLeaderUserException(NoLeaderUserException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 }

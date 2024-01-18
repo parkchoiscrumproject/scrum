@@ -36,4 +36,8 @@ public class ScrumInfo {
         this.isStart = isStart;
     }
 
+    public void addEndTime(){
+        this.endTime = LocalDateTime.now();
+    }
+
 }
