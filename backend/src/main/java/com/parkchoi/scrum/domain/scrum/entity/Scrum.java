@@ -49,5 +49,9 @@ public class Scrum {
     public void plusCurrentMember(){
         this.currentMember = currentMember + 1;
     }
+
+    public void addDeleteDate(){
+        this.deleteDate = LocalDateTime.now();
+    }
 }
 

@@ -57,4 +57,17 @@ public class ScrumController {
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼 참여 성공"));
     }
+
+    // 스크럼 삭제
+    @Operation(summary = "스크럼 삭제 API", description = "현재 유저가 특정 스크럼을 삭제합니다.")
+    @PatchMapping("team/{team_id}/scrum/{scrum_id}")
+    public ResponseEntity<ApiResponse<?>> removeScrum(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId,
+            @PathVariable(name = "scrum_id") Long scrumId
+    ){
+        scrumService.removeScrum(accessToken, teamId, scrumId);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼 삭제 성공"));
+    }
 }
