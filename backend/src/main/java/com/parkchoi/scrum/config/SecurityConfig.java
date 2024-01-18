@@ -52,7 +52,7 @@ public class SecurityConfig {
                         userInfo.userService(principalOAuth2UserService);
                     });
                 });
-
+        
         return http.build();
     }
 

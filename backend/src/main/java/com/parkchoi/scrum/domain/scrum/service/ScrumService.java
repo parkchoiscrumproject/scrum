@@ -84,7 +84,6 @@ public class ScrumService {
         }
     }
 
-
     // 스크럼 팀 조회
     public ScrumRoomListResponseDTO findScrums(String accessToken, Long teamId) {
         Long userId = jwtUtil.getUserId(accessToken);
