@@ -13,6 +13,4 @@ public class UserLoginInfoResponseDTO {
     private String profileImage;
     private Boolean isOnline;
 
-    public UserLoginInfoResponseDTO() {
-    }
 }
