@@ -33,7 +33,6 @@ public class TeamService {
     private final JwtUtil jwtUtil;
 
     //팀 생성
-
     @Transactional
     public CreateTeamResponseDTO createTeam(String accessToken, MultipartFile file, CreateTeamRequestDTO dto) throws IOException {
         Long userId = jwtUtil.getUserId(accessToken);
@@ -68,12 +67,18 @@ public class TeamService {
                     InviteTeamList inviteTeamList = InviteTeamList.builder()
                             .user(inviteeUser)
                             .team(team)
+                            .participant(false)
                             .build();
                     inviteTeamListRepository.save(inviteTeamList);
                 }
             }
 
-
+            // 현재 유저도 팀 초대 목록에 생성(참여)
+            InviteTeamList curUser = InviteTeamList.builder()
+                    .user(user)
+                    .team(team)
+                    .participant(true).build();
+            inviteTeamListRepository.save(curUser);
 
             return new CreateTeamResponseDTO(team.getName(),imageUrl);
 
