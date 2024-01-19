@@ -2,10 +2,9 @@ package com.parkchoi.scrum.domain.user.service;
 
 import com.parkchoi.scrum.domain.log.entity.UserLog;
 import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
-import com.parkchoi.scrum.domain.user.dto.request.UserInfoUpdateRequestDTO;
-import com.parkchoi.scrum.domain.user.dto.response.UserNicknameUpdateResponseDTO;
 import com.parkchoi.scrum.domain.user.dto.response.UserInviteInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.dto.response.UserLoginInfoResponseDTO;
+import com.parkchoi.scrum.domain.user.dto.response.UserNicknameUpdateResponseDTO;
 import com.parkchoi.scrum.domain.user.dto.response.UserProfileImageUpdateResponseDTO;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
@@ -88,12 +87,12 @@ public class UserService {
     }
 
     // 닉네임 중복 검사
-    public boolean checkDuplicationNickname(String accessToken, String nickname) {
+    public boolean checkDuplicationNickname(String nickname) {
         return userRepository.existsByNickname(nickname);
     }
 
     // 이메일로 유저 정보 찾기
-    public UserInviteInfoResponseDTO findUserInfoToEmail(String accessToken, String email){
+    public UserInviteInfoResponseDTO findUserInfoToEmail(String email){
         Optional<User> byEmail = userRepository.findByEmail(email);
         if(byEmail.isEmpty()){
             return null;
@@ -123,6 +122,7 @@ public class UserService {
         return new UserNicknameUpdateResponseDTO(nickname);
     }
 
+    // 프로필 이미지 변경
     @Transactional
     public UserProfileImageUpdateResponseDTO updateUserProfileImage(String accessToken, MultipartFile file) throws IOException {
         Long userId = jwtUtil.getUserId(accessToken);

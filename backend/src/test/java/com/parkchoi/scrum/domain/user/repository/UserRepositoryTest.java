@@ -24,6 +24,7 @@ public class UserRepositoryTest {
                 .email("test@test.com")
                 .profileImage("ex")
                 .nickname("ex")
+                .isOnline(false)
                 .type("kakao").build();
         userRepository.save(user);
     }

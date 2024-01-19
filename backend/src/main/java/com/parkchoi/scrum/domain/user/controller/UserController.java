@@ -51,9 +51,8 @@ public class UserController {
     @Operation(summary = "닉네임 중복 검사 API", description = "사용 불가 닉네임 = true, 사용 가능 닉네임 = false로 응답합니다.")
     @GetMapping("/user/{nickname}/existence")
     public ResponseEntity<ApiResponse<?>> checkDuplicationNickname(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable("nickname") String nickname) {
-        boolean result = userService.checkDuplicationNickname(accessToken, nickname);
+        boolean result = userService.checkDuplicationNickname(nickname);
 
         if (result) {
             return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "닉네임 중복 검사 성공(사용 불가)"));
@@ -87,9 +86,8 @@ public class UserController {
     @Operation(summary = "유저 정보 조회(이메일 검색) API", description = "이메일을 통해 해당 유저의 정보를 조회합니다.(팀 생성 -> 유저 초대시에 사용)")
     @GetMapping("/user/{email}/find")
     public ResponseEntity<ApiResponse<?>> findUserInfoToEmail(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable("email") String email) {
-        UserInviteInfoResponseDTO userInfoToEmail = userService.findUserInfoToEmail(accessToken, email);
+        UserInviteInfoResponseDTO userInfoToEmail = userService.findUserInfoToEmail(email);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(userInfoToEmail, "이메일로 유저 조회 성공"));
     }

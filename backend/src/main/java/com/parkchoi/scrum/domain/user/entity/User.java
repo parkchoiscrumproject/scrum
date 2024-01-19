@@ -43,12 +43,12 @@ public class User {
     private Boolean isOnline = false;
 
     @Builder
-    public User(String type, String email, String nickname, String profileImage) {
+    public User(String type, String email, String nickname, String profileImage, Boolean isOnline) {
         this.type = type;
         this.email = email;
         this.nickname = nickname;
         this.profileImage = profileImage;
-        this.isOnline = true;
+        this.isOnline = isOnline;
     }
 
     // 온라인 상태 변경

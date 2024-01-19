@@ -58,6 +58,7 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
                     .profileImage("https://ssgcrum.s3.ap-northeast-2.amazonaws.com/profile/default_image.png")
                     .email(email)
                     .nickname(randomNickname.generateUniqueNickname())
+                    .isOnline(true)
                     .build();
 
             userRepository.save(userInfo);
