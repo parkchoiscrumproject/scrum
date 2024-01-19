@@ -9,7 +9,6 @@ import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,12 +42,6 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
-    @BeforeEach
-    void setUp() {
-
-    }
-
-
     @Test
     void 로그아웃_성공() {
         // given
@@ -68,7 +61,7 @@ class UserServiceTest {
         userService.logout(accessToken, response);
 
         // then
-        Assertions.assertEquals(mockUser.getIsOnline(), false);
+        Assertions.assertEquals(false, mockUser.getIsOnline());
         Mockito.verify(response).addCookie(Mockito.argThat(cookie -> "accessToken".equals(cookie.getName()) && cookie.getMaxAge() == 0));
         Mockito.verify(response).addCookie(Mockito.argThat(cookie -> "refreshToken".equals(cookie.getName()) && cookie.getMaxAge() == 0));
         Mockito.verify(response).addCookie(Mockito.argThat(cookie -> "JSESSIONID".equals(cookie.getName()) && cookie.getMaxAge() == 0));
@@ -204,8 +197,8 @@ class UserServiceTest {
         userService.updateUserProfileImage(accessToken, file);
 
         // then
-        Assertions.assertNotEquals(mockUser.getProfileImage(), "test");
-        Assertions.assertEquals(mockUser.getProfileImage(), "qwer");
+        Assertions.assertNotEquals("test", mockUser.getProfileImage());
+        Assertions.assertEquals("qwer", mockUser.getProfileImage());
     }
 
     @Test
@@ -230,4 +223,27 @@ class UserServiceTest {
         });
     }
 
+    @Test
+    void 상태메시지_변경_성공(){
+        // given
+        String statusMessage = "이것은 변경하려는 상태메시지 입니다.";
+        String accessToken = "test_access_token";
+        Long userId = 1L;
+        User mockUser = User.builder()
+                .email("test@test.com")
+                .profileImage("test")
+                .nickname("test")
+                .type("kakao").build();
+
+        Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+
+        // when
+        userService.updateUserStatusMessage(accessToken, statusMessage);
+
+        // then
+        Assertions.assertEquals(statusMessage, mockUser.getStatusMessage());
+        Assertions.assertNotEquals(null, mockUser.getStatusMessage());
+
+    }
 }

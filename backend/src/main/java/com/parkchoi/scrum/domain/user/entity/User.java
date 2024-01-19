@@ -71,4 +71,9 @@ public class User {
         this.profileImage = profileImage;
     }
 
+    // 상태메시지 변경
+    public void updateStatusMessage(String message){
+        this.statusMessage = message;
+    }
+
 }

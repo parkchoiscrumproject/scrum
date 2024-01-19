@@ -137,6 +137,16 @@ public class UserService {
         return new UserProfileImageUpdateResponseDTO(url);
     }
 
+    // 상태메시지 변경
+    @Transactional
+    public void updateUserStatusMessage(String accessToken, String statusMessage){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        user.updateStatusMessage(statusMessage);
+    }
 
 }
 
