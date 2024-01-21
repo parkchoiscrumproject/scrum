@@ -40,15 +40,14 @@ public class TeamController {
 
 
     // 팀 삭제
-//    @Operation(summary = "팀 삭제 API", description = "파라미터로 넣은 team_id를 받아서 팀 삭제를 진행합니다.")
-//    @DeleteMapping("/team/{team_id}")
-//    public ResponseEntity<ApiResponse<?>> deleteTeam(
-//            @CookieValue(name = "accessToken", required = false) String accessToken,
-//            @RequestParam String team_id){
-//
-//
-//
-//
-//        return ResponseEntity.status(204).body(ApiResponse.createSuccessNoContent())
-//    }
+    @Operation(summary = "팀 삭제 API", description = "파라미터로 넣은 team_id를 받아서 팀 삭제를 진행합니다.")
+    @DeleteMapping("/team/{team_id}")
+    public ResponseEntity<ApiResponse<?>> deleteTeam(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable Long team_id){
+
+        teamService.removeTeam(accessToken,team_id);
+
+        return ResponseEntity.status(204).body(ApiResponse.createSuccessNoContent("팀 삭제 성공"));
+    }
 }

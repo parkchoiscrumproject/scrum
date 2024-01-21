@@ -5,6 +5,8 @@ import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
+import com.parkchoi.scrum.domain.team.exception.NoTeamLeaderException;
+import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
 import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
@@ -18,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -62,8 +63,8 @@ public class TeamService {
 
             if(inviteList!=null && !inviteList.isEmpty()){
                 for(Long inviteUserId : inviteList){
-                    User inviteeUser  = userRepository.findById(inviteUserId)
-                            .orElseThrow(()->new UserNotFoundException("초대 유저 존재하지 않음"));
+
+                    User inviteeUser  = userRepository.findById(inviteUserId).get();
 
                     InviteTeamList inviteTeamList = InviteTeamList.builder()
                             .user(inviteeUser)
@@ -83,13 +84,6 @@ public class TeamService {
 
             return new CreateTeamResponseDTO(team.getName(),imageUrl);
 
-
-        }catch (UserNotFoundException ex) {
-            if(imageUrl != null){
-                s3UploadService.deleteFile(imageUrl);
-            }
-            throw ex;
-
         } catch (Exception e) {
             if(imageUrl != null){
                 s3UploadService.deleteFile(imageUrl);
@@ -98,4 +92,26 @@ public class TeamService {
         }
     }
 
+
+    // 팀 삭제
+    @Transactional
+    public void removeTeam(String accessToken, Long teamId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        if(team.getUser().getId()!=userId){
+            throw new NoTeamLeaderException("리더만 삭제 가능합니다.");
+        }
+
+        //팀과 관련된 invite_team_list 행 삭제
+        inviteTeamListRepository.deleteByTeam(team);
+
+        //팀 삭제
+        teamRepository.deleteByIdAndUserId(teamId,userId);
+    }
 }

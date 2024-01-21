@@ -2,6 +2,7 @@ package com.parkchoi.scrum.domain.exception.controller;
 
 import com.parkchoi.scrum.domain.scrum.exception.*;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
+import com.parkchoi.scrum.domain.team.exception.NoTeamLeaderException;
 import com.parkchoi.scrum.domain.team.exception.NonParticipantUserException;
 import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
 import com.parkchoi.scrum.domain.user.exception.AuthFailException;
@@ -78,6 +79,12 @@ public class GlobalExceptionHandler {
     // 현재 유저가 스크럼의 리더가 아님
     @ExceptionHandler(NoLeaderUserException.class)
     public ResponseEntity<ApiResponse<?>> handleNoLeaderUserException(NoLeaderUserException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 현재 유저가 팀의 리더가 아님
+    @ExceptionHandler(NoTeamLeaderException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoTeamLeaderException(NoTeamLeaderException e){
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 }
