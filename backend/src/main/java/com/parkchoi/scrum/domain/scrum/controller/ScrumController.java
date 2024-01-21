@@ -70,4 +70,18 @@ public class ScrumController {
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼 삭제 성공"));
     }
+
+    // 스크럼 시작
+    @Operation(summary = "스크럼 시작 API", description = "스크럼의 리더가 스크럼을 시작합니다.")
+    @PatchMapping("team/{team_id}/scrum/{scrum_id}/start")
+    public ResponseEntity<ApiResponse<?>> startScrum(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId,
+            @PathVariable(name = "scrum_id") Long scrumId
+    ){
+        scrumService.startScrum(accessToken, teamId, scrumId);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼을 시작합니다."));
+    }
+    
 }

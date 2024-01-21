@@ -132,7 +132,7 @@ public class ScrumService {
                 .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
 
         if(scrum.getDeleteDate() != null){
-            throw new RemoveScrumException("삭제된 스크럼입니다.");
+            throw new NotScrumLeaderException("삭제된 스크럼입니다.");
         }
 
         ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
@@ -161,7 +161,7 @@ public class ScrumService {
 
     // 스크럼 삭제
     @Transactional
-    public void removeScrum(String accessToken, Long teamId, Long scrumId){
+    public void removeScrum(String accessToken, Long teamId, Long scrumId) {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
@@ -176,13 +176,45 @@ public class ScrumService {
         Scrum scrum = scrumRepository.findById(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
 
-        if(scrum.getUser().getId() != userId){
-            throw new RemoveScrumException("리더만 삭제 가능합니다.");
+        if (!scrum.getUser().getId().equals(userId)) {
+            throw new NotScrumLeaderException("리더만 삭제 가능합니다.");
         }
 
         // 삭제 시간 추가
         scrum.addDeleteDate();
+    }
 
+    // 스크럼 시작
+    @Transactional
+    public void startScrum(String accessToken, Long teamId, Long scrumId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+
+        Scrum scrum = scrumRepository.findById(scrumId)
+                .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
+
+        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
+
+        if (!scrum.getUser().getId().equals(userId)) {
+            throw new NotScrumLeaderException("리더만 시작 가능합니다.");
+        }
+
+        // 이미 스크럼이 시작했다면
+        if (scrumInfo.getIsStart()){
+            throw new AlreadyScrumStartException("이미 시작된 스크럼입니다.");
+        }
+
+        // 시작 상태 변경과 시간 추가
+        scrumInfo.startScrum();
+        scrumInfo.addStartTime();
     }
 
 }

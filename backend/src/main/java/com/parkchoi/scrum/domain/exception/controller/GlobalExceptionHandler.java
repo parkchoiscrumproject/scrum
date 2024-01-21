@@ -69,15 +69,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 
-    // 이미 삭제된 스크럼
-    @ExceptionHandler(RemoveScrumException.class)
-    public ResponseEntity<ApiResponse<?>> handleRemoveScrumException(RemoveScrumException e) {
+    // 현재 유저가 스크럼의 리더가 아님
+    @ExceptionHandler(NotScrumLeaderException.class)
+    public ResponseEntity<ApiResponse<?>> handleNotScrumLeaderException(NotScrumLeaderException e) {
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 
-    // 현재 유저가 스크럼의 리더가 아님
-    @ExceptionHandler(NoLeaderUserException.class)
-    public ResponseEntity<ApiResponse<?>> handleNoLeaderUserException(NoLeaderUserException e) {
+    // 이미 스크럼이 시작 상태
+    @ExceptionHandler(AlreadyScrumStartException.class)
+    public ResponseEntity<ApiResponse<?>> handleAlreadyScrumStartException(AlreadyScrumStartException e) {
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 }
