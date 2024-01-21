@@ -94,21 +94,27 @@ public class ScrumService {
         InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
 
-        Optional<List<Scrum>> byTeam = scrumRepository.findByTeamWithUserFetchJoin(team);
-        List<Scrum> scrums = byTeam.orElse(new ArrayList<>());
+        Optional<List<Scrum>> scrumList = scrumRepository.findByTeamWithScrumInfos(team);
 
+        List<Scrum> scrums = scrumList.orElse(new ArrayList<>());
         List<ScrumRoomDTO> scrumRoomDTOList = new ArrayList<>();
 
-        for(Scrum s : scrums){
-            ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.builder()
-                    .scrumId(s.getId())
-                    .name(s.getName())
-                    .profileImage(s.getUser().getProfileImage())
-                    .maxMember(s.getMaxMember())
-                    .currentMember(s.getCurrentMember())
-                    .nickname(s.getUser().getNickname()).build();
+        for(int i=0; i<scrums.size(); i++){
+            Scrum s = scrums.get(i);
+            if(s.getScrumInfos().get(i).getEndTime() == null){
+                Boolean isStart = s.getScrumInfos().get(i).getIsStart();
 
-            scrumRoomDTOList.add(scrumRoomDTO);
+                ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.builder()
+                        .scrumId(s.getId())
+                        .name(s.getName())
+                        .profileImage(s.getUser().getProfileImage())
+                        .maxMember(s.getMaxMember())
+                        .currentMember(s.getCurrentMember())
+                        .isRunning(isStart)
+                        .nickname(s.getUser().getNickname()).build();
+
+                scrumRoomDTOList.add(scrumRoomDTO);
+            }
         }
 
         return new ScrumRoomListResponseDTO(scrumRoomDTOList);
@@ -240,6 +246,11 @@ public class ScrumService {
 
         ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
 
+        // 이미 삭제된 스크럼이면
+        if (scrum.getDeleteDate() != null){
+            throw new AlreadyScrumRemoveException("이미 삭제된 스크럼입니다.");
+        }
+
         if (!scrum.getUser().getId().equals(userId)) {
             throw new NotScrumLeaderException("리더만 종료 가능합니다.");
         }
@@ -253,6 +264,7 @@ public class ScrumService {
         if (scrumInfo.getEndTime() != null){
             throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
         }
+
 
         scrumInfo.endScrum();
     }
