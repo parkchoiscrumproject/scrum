@@ -34,7 +34,7 @@ public class TeamService {
 
     //팀 생성
     @Transactional
-    public CreateTeamResponseDTO createTeam(String accessToken, MultipartFile file, CreateTeamRequestDTO dto) throws IOException {
+    public CreateTeamResponseDTO createTeam(String accessToken, MultipartFile file, CreateTeamRequestDTO dto) {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
@@ -62,7 +62,8 @@ public class TeamService {
 
             if(inviteList!=null && !inviteList.isEmpty()){
                 for(Long inviteUserId : inviteList){
-                    User inviteeUser  = userRepository.findById(inviteUserId).get();
+                    User inviteeUser  = userRepository.findById(inviteUserId)
+                            .orElseThrow(()->new UserNotFoundException("초대 유저 존재하지 않음"));
 
                     InviteTeamList inviteTeamList = InviteTeamList.builder()
                             .user(inviteeUser)
@@ -83,7 +84,13 @@ public class TeamService {
             return new CreateTeamResponseDTO(team.getName(),imageUrl);
 
 
-        }catch (Exception e) {
+        }catch (UserNotFoundException ex) {
+            if(imageUrl != null){
+                s3UploadService.deleteFile(imageUrl);
+            }
+            throw ex;
+
+        } catch (Exception e) {
             if(imageUrl != null){
                 s3UploadService.deleteFile(imageUrl);
             }
