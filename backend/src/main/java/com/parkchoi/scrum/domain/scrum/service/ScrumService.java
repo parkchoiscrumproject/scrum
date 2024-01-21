@@ -138,7 +138,7 @@ public class ScrumService {
         ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
         // 이미 종료된 스크럼이면
         if(scrumInfo.getEndTime() != null){
-            throw new EndScrumException("이미 종료된 스크럼입니다.");
+            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
         }
 
         Optional<ScrumParticipant> byScrumAndUser = scrumParticipantRepository.findByUserAndScrum(user, scrum);
@@ -155,6 +155,8 @@ public class ScrumService {
             scrumParticipantRepository.save(scrumParticipant);
             // 현재 인원 증가
             scrum.plusCurrentMember();
+        }else{
+            throw new AlreadyScrumEnterException("이미 스크럼에 참여중입니다.");
         }
         // 나중에 화면에 필요한 정보 리턴
     }
@@ -180,6 +182,9 @@ public class ScrumService {
             throw new NotScrumLeaderException("리더만 삭제 가능합니다.");
         }
 
+        if (scrum.getDeleteDate() != null){
+            throw new AlreadyScrumRemoveException("이미 삭제된 스크럼입니다.");
+        }
         // 삭제 시간 추가
         scrum.addDeleteDate();
     }
@@ -214,7 +219,42 @@ public class ScrumService {
 
         // 시작 상태 변경과 시간 추가
         scrumInfo.startScrum();
-        scrumInfo.addStartTime();
+    }
+
+    // 스크럼 종료
+    @Transactional
+    public void endScrum(String accessToken, Long teamId, Long scrumId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+
+        Scrum scrum = scrumRepository.findById(scrumId)
+                .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
+
+        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
+
+        if (!scrum.getUser().getId().equals(userId)) {
+            throw new NotScrumLeaderException("리더만 종료 가능합니다.");
+        }
+
+        // 아직 스크럼이 시작하지 않았으면
+        if (!scrumInfo.getIsStart()){
+            throw new NotStartScrumException("아직 스크럼을 시작하지 않았습니다.");
+        }
+
+        // 이미 스크럼이 종료 상태라면
+        if (scrumInfo.getEndTime() != null){
+            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
+        }
+
+        scrumInfo.endScrum();
     }
 
 }

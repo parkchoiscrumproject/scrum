@@ -57,12 +57,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 
-    // 종료된 스크럼
-    @ExceptionHandler(EndScrumException.class)
-    public ResponseEntity<ApiResponse<?>> handleEndScrumException(EndScrumException e) {
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
-    }
-
     // 멤버가 꽉 찬 스크럼
     @ExceptionHandler(MaxMemberScrumException.class)
     public ResponseEntity<ApiResponse<?>> handleMaxMemberScrumException(MaxMemberScrumException e) {
@@ -78,6 +72,30 @@ public class GlobalExceptionHandler {
     // 이미 스크럼이 시작 상태
     @ExceptionHandler(AlreadyScrumStartException.class)
     public ResponseEntity<ApiResponse<?>> handleAlreadyScrumStartException(AlreadyScrumStartException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 이미 스크럼이 종료 상태
+    @ExceptionHandler(AlreadyScrumEndException.class)
+    public ResponseEntity<ApiResponse<?>> handleAlreadyScrumEndException(AlreadyScrumEndException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 아직 스크럼이 시작하지 않은 상태
+    @ExceptionHandler(NotStartScrumException.class)
+    public ResponseEntity<ApiResponse<?>> handleNotStartScrumException(NotStartScrumException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 이미 스크럼에 참여중이면
+    @ExceptionHandler(AlreadyScrumEnterException.class)
+    public ResponseEntity<ApiResponse<?>> handleAlreadyScrumEnterException(AlreadyScrumEnterException e) {
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 이미 스크럼이 삭제됐다면
+    @ExceptionHandler(AlreadyScrumRemoveException.class)
+    public ResponseEntity<ApiResponse<?>> handleAlreadyScrumRemoveException(AlreadyScrumRemoveException e) {
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 }

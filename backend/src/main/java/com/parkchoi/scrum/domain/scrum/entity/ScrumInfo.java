@@ -36,16 +36,14 @@ public class ScrumInfo {
         this.isStart = isStart;
     }
 
-    public void addEndTime(){
+    public void startScrum(){
+        this.isStart = true;
+        this.startTime = LocalDateTime.now();
+    }
+
+    public void endScrum(){
         this.endTime = LocalDateTime.now();
     }
 
-    public void startScrum(){
-        this.isStart = true;
-    }
-
-    public void addStartTime(){
-        this.startTime = LocalDateTime.now();
-    }
 
 }
