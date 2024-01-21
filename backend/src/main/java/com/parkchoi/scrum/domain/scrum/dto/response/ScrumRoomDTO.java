@@ -12,4 +12,5 @@ public class ScrumRoomDTO {
     private String nickname;
     private int currentMember;
     private int maxMember;
+    private Boolean isRunning;
 }
