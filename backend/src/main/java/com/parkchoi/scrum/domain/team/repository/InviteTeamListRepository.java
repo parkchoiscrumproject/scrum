@@ -11,4 +11,6 @@ import java.util.Optional;
 @Repository
 public interface InviteTeamListRepository extends JpaRepository<InviteTeamList, Long> {
     Optional<InviteTeamList> findByUserAndTeamAndParticipantIsTrue(User user, Team team);
+
+    void deleteByTeam(Team team);
 }
