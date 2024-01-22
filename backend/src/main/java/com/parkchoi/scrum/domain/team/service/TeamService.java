@@ -104,13 +104,10 @@ public class TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
 
-        if(team.getUser().getId()!=userId){
+        if(!team.getUser().getId().equals(userId)){
             throw new NoTeamLeaderException("리더만 삭제 가능합니다.");
         }
-
-        //팀과 관련된 invite_team_list 행 삭제
-        inviteTeamListRepository.deleteByTeam(team);
-
+        
         //팀 삭제
         teamRepository.deleteByIdAndUserId(teamId,userId);
     }
