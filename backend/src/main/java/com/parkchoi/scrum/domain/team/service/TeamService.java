@@ -6,6 +6,7 @@ import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
+import com.parkchoi.scrum.domain.team.exception.InviteNotFoundException;
 import com.parkchoi.scrum.domain.team.exception.NoTeamLeaderException;
 import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
 import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
@@ -134,7 +135,9 @@ public class TeamService {
             //초대 중인 경우 처리
 
 
-            //이미 팀에 속해 있는 경우 처리
+
+
+
 
 
             //일단 없는 상태로 진행(수정 예정)
@@ -148,4 +151,49 @@ public class TeamService {
         }
 
     }
+
+    // 팀 초대 승낙
+    @Transactional
+    public void acceptTeamInvite(String accessToken, Long teamId, Long inviteId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        InviteTeamList teamList = inviteTeamListRepository.findById(inviteId)
+                .orElseThrow(()-> new InviteNotFoundException("초대가 존재하지 않습니다."));
+
+//        if(teamList.isParticipant()){
+//            throw new
+//        }else{
+//
+//        }
+        
+    }
+
+
+
+
+    // 팀 초대 거절
+    @Transactional
+    public void refuseTeamInvite(String accessToken, Long teamId, Long inviteId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        inviteTeamListRepository.deleteById(inviteId);
+    }
+
+
+
+
+
+
 }

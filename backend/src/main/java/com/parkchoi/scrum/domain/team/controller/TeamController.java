@@ -52,9 +52,9 @@ public class TeamController {
 
 
 
-    // 팀원 초대
+    // 팀원 초대 -> 추후 화면 만들고 진행 예정 (1/25일)
     @Operation(summary = "팀원 초대 API", description = "파라미터로 넣은 team_id를 받아서 팀원 초대를 진행합니다.")
-    @PostMapping("/team/{team_id}/invite/{invite_id}")
+    @PostMapping("/team/{team_id}/invite")
     public ResponseEntity<ApiResponse<?>> inviteTeamMember(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId,
@@ -64,6 +64,37 @@ public class TeamController {
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀원 초대를 성공하였습니다."));
     }
+
+    //팀 초대 승낙
+    @Operation(summary = "팀원 초대 승낙 API", description = "파라미터로 넣은 team_id와 invite_id를 받아서 팀 초대를 승낙합니다.")
+    @PatchMapping("/team/{team_id}/invite/{invite_id}")
+    public ResponseEntity<ApiResponse<?>> acceptTeamInvite(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId,
+            @PathVariable(name = "invite_id") Long inviteId){
+
+        teamService.acceptTeamInvite(accessToken,teamId,inviteId);
+
+        return  ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 초대 승낙을 성공하였습니다."));
+    }
+
+
+    // 팀 초대 거절
+    @Operation(summary = "팀 초대 거절 API", description = "파라미터로 넣은 team_id와 invite_id를 받아서 팀 초대를 거절합니다.")
+    @DeleteMapping("/team/{team_id}/invite/{invite_id}")
+    public ResponseEntity<ApiResponse<?>> refuseTeamInvite(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId,
+            @PathVariable(name = "invite_id") Long inviteId){
+
+        teamService.refuseTeamInvite(accessToken,teamId,inviteId);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 초대 거절을 성공하였습니다."));
+    }
+
+
+
+
 
 
 

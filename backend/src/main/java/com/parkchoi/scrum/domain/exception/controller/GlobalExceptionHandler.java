@@ -114,4 +114,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleAlreadyInviteMemberException(AlreadyInviteMemberException e){
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
+
+    // 팀 초대가 없다면
+    @ExceptionHandler(InviteNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleInviteNotFoundException(InviteNotFoundException e){
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
 }
