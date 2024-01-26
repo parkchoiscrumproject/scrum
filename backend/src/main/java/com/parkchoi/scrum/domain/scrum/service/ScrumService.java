@@ -94,23 +94,21 @@ public class ScrumService {
         InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
 
-        Optional<List<Scrum>> scrumList = scrumRepository.findByTeamWithScrumInfos(team);
+        Optional<List<Scrum>> scrumList = scrumRepository.findByTeamWithFetchJoinUserAndScrumInfoAndDeleteDateIsNull(team);
 
         List<Scrum> scrums = scrumList.orElse(new ArrayList<>());
         List<ScrumRoomDTO> scrumRoomDTOList = new ArrayList<>();
 
         for(int i=0; i<scrums.size(); i++){
             Scrum s = scrums.get(i);
-            if(s.getScrumInfos().get(i).getEndTime() == null){
-                Boolean isStart = s.getScrumInfos().get(i).getIsStart();
-
+            if(s.getScrumInfo().getEndTime() == null){
                 ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.builder()
                         .scrumId(s.getId())
                         .name(s.getName())
                         .profileImage(s.getUser().getProfileImage())
                         .maxMember(s.getMaxMember())
                         .currentMember(s.getCurrentMember())
-                        .isRunning(isStart)
+                        .isRunning(s.getScrumInfo().getIsStart())
                         .nickname(s.getUser().getNickname()).build();
 
                 scrumRoomDTOList.add(scrumRoomDTO);
@@ -267,6 +265,21 @@ public class ScrumService {
 
 
         scrumInfo.endScrum();
+    }
+
+    // 스크럼 생성 가능 여부 확인
+    public boolean checkScrumAvailability(String accessToken){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Optional<List<Scrum>> scrumList = scrumRepository.findByUserWithFetchJoinScrumInfoAndDeleteDateIsNullAndEndTimeIsNull(user);
+        if(scrumList.isPresent() && !scrumList.get().isEmpty()){
+            return false;
+        }else{
+            return true;
+        }
     }
 
 }

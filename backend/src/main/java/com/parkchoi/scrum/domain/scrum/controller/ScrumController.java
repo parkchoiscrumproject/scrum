@@ -97,4 +97,15 @@ public class ScrumController {
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼을 종료합니다."));
     }
 
+    // 스크럼 생성 가능 여부 확인
+    @Operation(summary = "스크럼 생성 가능 여부 확인 API", description = "현재 유저가 스크럼 생성이 가능한지 확인합니다.")
+    @GetMapping("scrum/creation-availability")
+    public ResponseEntity<ApiResponse<?>> checkScrumAvailability(
+            @CookieValue(name = "accessToken", required = false) String accessToken){
+        boolean result = scrumService.checkScrumAvailability(accessToken);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "true = 스크럼 생성 가능, false = 스크럼 생성 불가"));
+    }
+
+
 }
