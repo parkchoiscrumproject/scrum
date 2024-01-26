@@ -1,10 +1,7 @@
 package com.parkchoi.scrum.domain.exception.controller;
 
 import com.parkchoi.scrum.domain.scrum.exception.*;
-import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
-import com.parkchoi.scrum.domain.team.exception.NoTeamLeaderException;
-import com.parkchoi.scrum.domain.team.exception.NonParticipantUserException;
-import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
+import com.parkchoi.scrum.domain.team.exception.*;
 import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.util.api.ApiResponse;
@@ -103,6 +100,24 @@ public class GlobalExceptionHandler {
     // 현재 유저가 팀의 리더가 아님
     @ExceptionHandler(NoTeamLeaderException.class)
     public ResponseEntity<ApiResponse<?>> handleNoTeamLeaderException(NoTeamLeaderException e){
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 이미 팀에 속해있다면
+    @ExceptionHandler(AlreadyTeamMemberException.class)
+    public ResponseEntity<ApiResponse<?>> handleAlreadyTeamMemberException(AlreadyTeamMemberException e){
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 이미 팀 초대 목록에 있다면
+    @ExceptionHandler(AlreadyInviteMemberException.class)
+    public ResponseEntity<ApiResponse<?>> handleAlreadyInviteMemberException(AlreadyInviteMemberException e){
+        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    }
+
+    // 팀 초대가 없다면
+    @ExceptionHandler(InviteNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleInviteNotFoundException(InviteNotFoundException e){
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 }

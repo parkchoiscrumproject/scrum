@@ -1,10 +1,12 @@
 package com.parkchoi.scrum.domain.team.service;
 
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
+import com.parkchoi.scrum.domain.team.dto.request.TeamInvitationRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
+import com.parkchoi.scrum.domain.team.exception.InviteNotFoundException;
 import com.parkchoi.scrum.domain.team.exception.NoTeamLeaderException;
 import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
 import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
@@ -107,8 +109,91 @@ public class TeamService {
         if(!team.getUser().getId().equals(userId)){
             throw new NoTeamLeaderException("리더만 삭제 가능합니다.");
         }
-        
+
         //팀 삭제
         teamRepository.deleteByIdAndUserId(teamId,userId);
     }
+
+
+    // 팀원 초대
+    @Transactional
+    public void inviteTeamMember(String accessToken, Long teamId, TeamInvitationRequestDTO dto){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        List<Long> inviteeUserIds = dto.getInviteList();
+
+        for(Long inviteeUserId : inviteeUserIds){
+            User invitee = userRepository.findById(inviteeUserId)
+                    .orElseThrow(() -> new UserNotFoundException("초대할 유저 찾을 수 없음"));
+
+            //초대 중인 경우 처리
+
+
+
+
+
+
+
+            //일단 없는 상태로 진행(수정 예정)
+            InviteTeamList invite = InviteTeamList.builder()
+                    .user(invitee)
+                    .team(team)
+                    .participant(false)
+                    .build();
+
+            inviteTeamListRepository.save(invite);
+        }
+
+    }
+
+    // 팀 초대 승낙
+    @Transactional
+    public void acceptTeamInvite(String accessToken, Long teamId, Long inviteId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        InviteTeamList teamList = inviteTeamListRepository.findById(inviteId)
+                .orElseThrow(()-> new InviteNotFoundException("초대가 존재하지 않습니다."));
+
+//        if(teamList.isParticipant()){
+//            throw new
+//        }else{
+//
+//        }
+        
+    }
+
+
+
+
+    // 팀 초대 거절
+    @Transactional
+    public void refuseTeamInvite(String accessToken, Long teamId, Long inviteId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        inviteTeamListRepository.deleteById(inviteId);
+    }
+
+
+
+
+
+
 }
