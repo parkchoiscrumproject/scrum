@@ -10,8 +10,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -38,8 +36,8 @@ public class Scrum {
     private int currentMember;
     @Column(nullable = false)
     private int maxMember;
-    @OneToMany(mappedBy = "scrum", fetch = FetchType.LAZY)
-    private List<ScrumInfo> scrumInfos = new ArrayList<>();
+    @OneToOne(mappedBy = "scrum", fetch = FetchType.LAZY)
+    private ScrumInfo scrumInfo;
     @Builder
     public Scrum(Team team, User user, String name, int currentMember, int maxMember) {
         this.team = team;

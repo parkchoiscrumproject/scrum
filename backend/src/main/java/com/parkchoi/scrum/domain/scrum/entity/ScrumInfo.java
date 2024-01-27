@@ -19,7 +19,7 @@ public class ScrumInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scrum_id")
     private Scrum scrum;
     @Column(nullable = false)
@@ -46,6 +46,5 @@ public class ScrumInfo {
     public void endScrum(){
         this.endTime = LocalDateTime.now();
     }
-
 
 }
