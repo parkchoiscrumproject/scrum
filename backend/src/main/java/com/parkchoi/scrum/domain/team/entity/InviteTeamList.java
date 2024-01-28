@@ -29,5 +29,9 @@ public class InviteTeamList {
         this.participant = participant;
     }
 
+    public void acceptInvitation(){
+        this.participant = true;
+    }
+
 
 }

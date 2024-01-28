@@ -52,7 +52,7 @@ public class TeamController {
 
 
 
-    // 팀원 초대 -> 추후 화면 만들고 진행 예정 (1/25일)
+    // 팀원 초대
     @Operation(summary = "팀원 초대 API", description = "파라미터로 넣은 team_id를 받아서 팀원 초대를 진행합니다.")
     @PostMapping("/team/{team_id}/invite")
     public ResponseEntity<ApiResponse<?>> inviteTeamMember(
