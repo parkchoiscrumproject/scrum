@@ -3,6 +3,7 @@ package com.parkchoi.scrum.domain.team.service;
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.request.TeamInvitationRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
+import com.parkchoi.scrum.domain.team.dto.response.TeamListResponseDTO;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
@@ -176,6 +177,17 @@ public class TeamService {
 
         inviteTeamListRepository.deleteById(inviteId);
     }
+
+
+    // 나의 팀 목록 조회
+//    public TeamListResponseDTO findMyTeams(String accessToken){
+//        Long userId = jwtUtil.getUserId(accessToken);
+//
+//
+//
+//    }
+
+
 
 
 
