@@ -20,12 +20,18 @@ public class InviteTeamList {
     @JoinColumn(name = "team_id")
     private Team team;
     @Column(nullable = false)
-    private boolean participant = false;
+    private boolean participant;
 
     @Builder
-    public InviteTeamList(User user, Team team) {
+    public InviteTeamList(User user, Team team, boolean participant) {
         this.user = user;
         this.team = team;
+        this.participant = participant;
     }
+
+    public void acceptInvitation(){
+        this.participant = true;
+    }
+
 
 }

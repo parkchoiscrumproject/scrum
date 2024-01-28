@@ -40,7 +40,7 @@ public class Team {
     private LocalDateTime updatedDate;
     @Column(nullable = false)
     private String teamProfileImage;
-    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<InviteTeamList> inviteTeamList = new ArrayList<>();
 
 

@@ -22,7 +22,7 @@ public class Scrum {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
     @Column(nullable = false)
@@ -36,6 +36,8 @@ public class Scrum {
     private int currentMember;
     @Column(nullable = false)
     private int maxMember;
+    @OneToOne(mappedBy = "scrum", fetch = FetchType.LAZY)
+    private ScrumInfo scrumInfo;
 
     @Builder
     public Scrum(Team team, User user, String name, int currentMember, int maxMember) {
@@ -46,5 +48,17 @@ public class Scrum {
         this.maxMember = maxMember;
     }
 
+
+    public void plusCurrentMember(){
+        this.currentMember = currentMember + 1;
+    }
+
+    public void addDeleteDate(){
+        this.deleteDate = LocalDateTime.now();
+    }
+
+    public void addScrumInfo(ScrumInfo scrumInfo){
+        this.scrumInfo = scrumInfo;
+    }
 }
 

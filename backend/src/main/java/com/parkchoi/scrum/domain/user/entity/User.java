@@ -43,16 +43,37 @@ public class User {
     private Boolean isOnline = false;
 
     @Builder
-    public User(String type, String email, String nickname, String profileImage) {
+    public User(String type, String email, String nickname, String profileImage, Boolean isOnline) {
         this.type = type;
         this.email = email;
         this.nickname = nickname;
         this.profileImage = profileImage;
+        this.isOnline = isOnline;
+    }
+
+    // 온라인 상태 변경
+    public void isOnlineTrue(){
         this.isOnline = true;
     }
 
-    public void isOnlineTrue(){
-        this.isOnline = true;
+    // 오프라인 상태 변경
+    public void isOnlineFalse(){
+        this.isOnline = false;
+    }
+
+    // 닉네임 변경
+    public void updateNickname(String nickname){
+        this.nickname = nickname;
+    }
+
+    // 프로필 사진 변경
+    public void updateProfileImage(String profileImage){
+        this.profileImage = profileImage;
+    }
+
+    // 상태메시지 변경
+    public void updateStatusMessage(String message){
+        this.statusMessage = message;
     }
 
 }

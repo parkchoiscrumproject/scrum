@@ -3,8 +3,8 @@ import React, { useEffect } from "react";
 const SuccessPage = () => {
   useEffect(() => {
     // 서버에 사용자 정보 요청
-    fetch("http://localhost:8080/api/userinfo", {
-      method: "GET",
+    fetch("http://localhost:8080/api/user/login", {
+      method: "POST",
       credentials: "include", // 쿠키를 요청에 포함
     })
       .then((response) => response.json())

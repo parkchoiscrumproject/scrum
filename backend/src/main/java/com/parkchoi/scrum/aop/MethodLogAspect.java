@@ -12,18 +12,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class MethodLogAspect {
 
-    private long startTime;
-
-    @Before("execution(* com.parkchoi.scrum.domain.user.service.UserService.getUserInfo(..))")
-    public void beforeMethodExecution(){
-        startTime = System.currentTimeMillis();
-        log.info("로그인 로그 시작");
+    @Before("execution(* com.parkchoi.scrum.domain.user.controller.UserController.login(..))")
+    public void beforeLoginExecution(){
+        log.info("로그인 컨트롤러 시작");
     }
 
-    @AfterReturning(pointcut = "execution(* com.parkchoi.scrum.domain.user.service.UserService.getUserInfo(..))", returning = "response")
-    public void afterMethodExecution(UserLoginInfoResponseDTO response){
-        long endTime = System.currentTimeMillis();
-        log.info("로그인 로그 등록 완료");
-        log.info("실행 시간(ms) : {} 밀리초", (endTime - startTime));
+    @AfterReturning(pointcut = "execution(* com.parkchoi.scrum.domain.user.controller.UserController.login(..))")
+    public void afterLoginExecution(){
+        log.info("로그인 컨트롤러 성공");
     }
 }

@@ -6,4 +6,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TeamRepository extends JpaRepository<Team, Long> {
+
+    //팀 삭제
+    void deleteByIdAndUserId(Long id, Long userId);
+
+
 }
