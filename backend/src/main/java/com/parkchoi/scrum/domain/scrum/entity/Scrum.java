@@ -48,6 +48,7 @@ public class Scrum {
         this.maxMember = maxMember;
     }
 
+
     public void plusCurrentMember(){
         this.currentMember = currentMember + 1;
     }
