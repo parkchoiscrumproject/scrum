@@ -132,15 +132,6 @@ public class TeamService {
             User invitee = userRepository.findById(inviteeUserId)
                     .orElseThrow(() -> new UserNotFoundException("초대할 유저 찾을 수 없음"));
 
-            //초대 중인 경우 처리
-
-
-
-
-
-
-
-            //일단 없는 상태로 진행(수정 예정)
             InviteTeamList invite = InviteTeamList.builder()
                     .user(invitee)
                     .team(team)
@@ -149,7 +140,6 @@ public class TeamService {
 
             inviteTeamListRepository.save(invite);
         }
-
     }
 
     // 팀 초대 승낙
@@ -166,12 +156,8 @@ public class TeamService {
         InviteTeamList teamList = inviteTeamListRepository.findById(inviteId)
                 .orElseThrow(()-> new InviteNotFoundException("초대가 존재하지 않습니다."));
 
-//        if(teamList.isParticipant()){
-//            throw new
-//        }else{
-//
-//        }
-        
+        //초대 승낙
+        teamList.acceptInvitation();
     }
 
 
