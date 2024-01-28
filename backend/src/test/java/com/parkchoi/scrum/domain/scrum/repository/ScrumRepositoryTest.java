@@ -13,13 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.util.List;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ScrumRepositoryTest {
-    
+
     @Autowired
     private ScrumRepository scrumRepository;
     @Autowired
@@ -28,9 +29,11 @@ class ScrumRepositoryTest {
     private TeamRepository teamRepository;
     @Autowired
     private ScrumInfoRepository scrumInfoRepository;
+    @Autowired
+    private TestEntityManager tem;
 
-    private User user;
     private Team team;
+    private User user;
     private Scrum scrum;
     private ScrumInfo scrumInfo;
 
@@ -67,20 +70,46 @@ class ScrumRepositoryTest {
                 .scrum(scrum)
                 .subject("주제").build();
         scrumInfoRepository.save(scrumInfo);
-
+        tem.clear();
     }
-    
-    @Test
-    @DisplayName("삭제되지 않고 현재 팀에 속한 scurm 조회")
-    void 팀으로_삭제되지_않은_스크럼_조회_성공(){
-        // given
 
+    @Test
+    @DisplayName("삭제되지 않고 현재 팀에 속한 scurm 모두 조회")
+    void 삭제되지_않고_팀에_속한_스크럼_모두조회(){
+        // given
         // when
-        List<Scrum> scrums = scrumRepository.findByTeamWithScrumInfos(team).get();
+        List<Scrum> scrums = scrumRepository.findByTeamWithFetchJoinUserAndScrumInfoAndDeleteDateIsNull(team).get();
 
         // then
-        Assertions.assertNotNull(scrums);
-        Assertions.assertNotNull(scrums.get(0).getScrumInfos());
+        Assertions.assertFalse(scrums.isEmpty());
+        Assertions.assertNotNull(scrums.get(0).getScrumInfo());
+        Assertions.assertNotNull(scrums.get(0).getTeam());
+
+        Scrum scrum = scrums.get(0);
+        Assertions.assertNull(scrum.getDeleteDate());
+
+        User fetchUser = scrum.getUser();
+        Assertions.assertEquals("test@test.com", fetchUser.getEmail());
+
+        ScrumInfo fetchScrumInfo = scrum.getScrumInfo();
+        Assertions.assertEquals("주제", fetchScrumInfo.getSubject());
+
     }
 
+    @Test
+    @DisplayName("삭제되지 않고 유저가 속한 scrum 모두 조회")
+    void 삭제되지_않고_유저가_속한_스크럼_모두조회(){
+        // given
+        // when
+        List<Scrum> scrums = scrumRepository.findByUserWithFetchJoinScrumInfoAndDeleteDateIsNullAndEndTimeIsNull(user).get();
+
+        // then
+        Scrum scrum = scrums.get(0);
+
+        Assertions.assertNotNull(scrum.getUser());
+
+        Assertions.assertNull(scrum.getScrumInfo().getEndTime());
+        Assertions.assertNull(scrum.getDeleteDate());
+
+    }
 }
