@@ -211,22 +211,18 @@ public class TeamService {
 
 
     // 팀에 속해있는 멤버들을 조회(수정중)
-    public MemberListResponseDTO findTeamMembers(String accessToken,Long teamId){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
-
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
-
-        List<InviteTeamList> inviteTeamLists = inviteTeamListRepository.findByTeamAndParticipantIsTrue(team)
-                .orElse(new ArrayList<>());
-
-
-
-
-    }
+//    public MemberListResponseDTO findTeamMembers(String accessToken,Long teamId){
+//        Long userId = jwtUtil.getUserId(accessToken);
+//
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+//
+//        Team team = teamRepository.findById(teamId)
+//                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+//
+//        List<InviteTeamList> inviteTeamLists = inviteTeamListRepository.findByTeamAndParticipantIsTrue(team)
+//                .orElse(new ArrayList<>());
+//    }
 
 
 
