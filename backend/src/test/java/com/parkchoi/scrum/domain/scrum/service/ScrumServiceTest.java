@@ -17,6 +17,7 @@ import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,21 +58,30 @@ class ScrumServiceTest {
     @InjectMocks
     private ScrumService scrumService;
 
+    private String accessToken;
+    private Long userId;
+    private User mockUser;
+    private Long teamId;
+    private Team mockTeam;
 
-    @Test
-    void 스크럼_생성_성공() {
+    @BeforeEach
+    void set_up() throws NoSuchFieldException, IllegalAccessException {
         // given
-        String accessToken = "test_access_token";
-        Long userId = 1L;
-        User mockUser = User.builder()
+        accessToken = "test_access_token";
+        userId = 1L;
+        mockUser = User.builder()
                 .email("test@test.com")
                 .profileImage("test")
                 .nickname("test")
                 .isOnline(true)
                 .type("kakao").build();
 
-        Long teamId = 1L;
-        Team mockTeam = Team.builder()
+        Field id = mockUser.getClass().getDeclaredField("id");
+        id.setAccessible(true);
+        id.set(mockUser, userId);
+
+        teamId = 1L;
+        mockTeam = Team.builder()
                 .name("팀이름")
                 .teamProfileImage("팀사진")
                 .description("팀설명")
@@ -78,7 +89,11 @@ class ScrumServiceTest {
                 .maxMember(15)
                 .user(mockUser)
                 .build();
+    }
 
+
+    @Test
+    void 스크럼_생성_성공() {
         Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
@@ -109,25 +124,6 @@ class ScrumServiceTest {
     @Test
     void 스크럼_목록_조회_성공() {
         // given
-        String accessToken = "test_access_token";
-        Long userId = 1L;
-        User mockUser = User.builder()
-                .email("test@test.com")
-                .profileImage("test")
-                .nickname("test")
-                .isOnline(true)
-                .type("kakao").build();
-
-        Long teamId = 1L;
-        Team mockTeam = Team.builder()
-                .name("팀이름")
-                .teamProfileImage("팀사진")
-                .description("팀설명")
-                .currentMember(1)
-                .maxMember(15)
-                .user(mockUser)
-                .build();
-
         InviteTeamList mockInviteTeamList = InviteTeamList.builder()
                 .user(mockUser)
                 .team(mockTeam)
@@ -166,18 +162,153 @@ class ScrumServiceTest {
     }
 
     @Test
-    void enterScrum() {
+    void 스크럼_입장_성공() {
+        // given
+        InviteTeamList mockInviteTeamList = InviteTeamList.builder()
+                .user(mockUser)
+                .team(mockTeam)
+                .participant(true).build( );
+
+        Long scrumId = 1L;
+        Scrum mockScrum = Scrum.builder()
+                .team(mockTeam)
+                .user(mockUser)
+                .currentMember(1)
+                .name("스크럼")
+                .maxMember(15).build();
+
+        ScrumInfo mockScrumInfo = ScrumInfo.builder()
+                .scrum(mockScrum)
+                .isStart(false)
+                .subject("주제").build();
+        mockScrum.addScrumInfo(mockScrumInfo);
+
+        ScrumParticipant mockNullScrumParticipant = null;
+
+        Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
+        Mockito.when(inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(mockUser, mockTeam)).thenReturn(Optional.of(mockInviteTeamList));
+        Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
+        Mockito.when(scrumInfoRepository.findByScrum(mockScrum)).thenReturn(mockScrumInfo);
+        Mockito.when(scrumParticipantRepository.findByUserAndScrum(mockUser, mockScrum)).thenReturn(Optional.ofNullable(mockNullScrumParticipant));
+
+        // when
+        scrumService.enterScrum(accessToken, teamId, scrumId);
+
+        // then
+        ArgumentCaptor<ScrumParticipant> scrumParticipantArgumentCaptor = ArgumentCaptor.forClass(ScrumParticipant.class);
+        Mockito.verify(scrumParticipantRepository).save(scrumParticipantArgumentCaptor.capture());
+
+        Assertions.assertNull(mockScrum.getScrumInfo().getEndTime());
+        Assertions.assertNotEquals(mockScrum.getMaxMember(), mockScrum.getCurrentMember());
+        Assertions.assertEquals(mockUser, scrumParticipantArgumentCaptor.getValue().getUser());
+        Assertions.assertEquals(mockScrum, scrumParticipantArgumentCaptor.getValue().getScrum());
+        Assertions.assertNotEquals(mockScrum.getCurrentMember() + 1, scrumParticipantArgumentCaptor.getValue().getScrum().getCurrentMember());
     }
 
     @Test
-    void removeScrum() {
+    void 스크럼_삭제_성공() {
+        // given
+        InviteTeamList mockInviteTeamList = InviteTeamList.builder()
+                .user(mockUser)
+                .team(mockTeam)
+                .participant(true).build( );
+
+        Long scrumId = 1L;
+        Scrum mockScrum = Scrum.builder()
+                .team(mockTeam)
+                .user(mockUser)
+                .currentMember(1)
+                .name("스크럼")
+                .maxMember(15).build();
+
+        Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
+        Mockito.when(inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(mockUser, mockTeam)).thenReturn(Optional.of(mockInviteTeamList));
+        Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
+
+        // when
+        scrumService.removeScrum(accessToken, teamId, scrumId);
+
+        // then
+        Assertions.assertEquals(userId, mockScrum.getUser().getId());
+        Assertions.assertNotNull(mockScrum.getDeleteDate());
     }
 
     @Test
-    void startScrum() {
+    void 스크럼_시작_성공() {
+        // given
+        InviteTeamList mockInviteTeamList = InviteTeamList.builder()
+                .user(mockUser)
+                .team(mockTeam)
+                .participant(true).build( );
+
+        Long scrumId = 1L;
+        Scrum mockScrum = Scrum.builder()
+                .team(mockTeam)
+                .user(mockUser)
+                .currentMember(1)
+                .name("스크럼")
+                .maxMember(15).build();
+
+        ScrumInfo mockScrumInfo = ScrumInfo.builder()
+                .subject("주제")
+                .scrum(mockScrum)
+                .isStart(false).build();
+
+        Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
+        Mockito.when(inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(mockUser, mockTeam)).thenReturn(Optional.of(mockInviteTeamList));
+        Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
+        Mockito.when(scrumInfoRepository.findByScrum(mockScrum)).thenReturn(mockScrumInfo);
+
+        // when
+        scrumService.startScrum(accessToken, teamId, scrumId);
+
+        // then
+        Assertions.assertEquals(userId, mockScrum.getUser().getId());
+        Assertions.assertTrue(mockScrumInfo.getIsStart());
+        Assertions.assertNotNull(mockScrumInfo.getStartTime());
     }
 
     @Test
-    void endScrum() {
+    void 스크럼_종료_성공() {
+        // given
+        InviteTeamList mockInviteTeamList = InviteTeamList.builder()
+                .user(mockUser)
+                .team(mockTeam)
+                .participant(true).build( );
+
+        Long scrumId = 1L;
+        Scrum mockScrum = Scrum.builder()
+                .team(mockTeam)
+                .user(mockUser)
+                .currentMember(1)
+                .name("스크럼")
+                .maxMember(15).build();
+
+        ScrumInfo mockScrumInfo = ScrumInfo.builder()
+                .subject("주제")
+                .scrum(mockScrum)
+                .isStart(true).build();
+
+        Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
+        Mockito.when(inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(mockUser, mockTeam)).thenReturn(Optional.of(mockInviteTeamList));
+        Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
+        Mockito.when(scrumInfoRepository.findByScrum(mockScrum)).thenReturn(mockScrumInfo);
+
+        // when
+        scrumService.endScrum(accessToken, teamId, scrumId);
+
+        // then
+        Assertions.assertNull(mockScrum.getDeleteDate());
+        Assertions.assertEquals(userId, mockScrum.getUser().getId());
+        Assertions.assertTrue(mockScrumInfo.getIsStart());
+        Assertions.assertNotNull(mockScrumInfo.getEndTime());
     }
 }
