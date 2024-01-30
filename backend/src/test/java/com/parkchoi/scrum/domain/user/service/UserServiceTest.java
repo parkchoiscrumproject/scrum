@@ -135,9 +135,9 @@ class UserServiceTest {
     @Test
     void 이메일로_유저_검색_유저_있음() {
         // given
-        String email = "test@test.com";
+        String email = "test";
         User mockUser = User.builder()
-                .email("test@test.com")
+                .email("test")
                 .profileImage("test")
                 .nickname("test")
                 .type("kakao").build();
