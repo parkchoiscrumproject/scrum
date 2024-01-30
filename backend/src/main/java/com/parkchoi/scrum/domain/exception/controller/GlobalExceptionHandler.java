@@ -120,4 +120,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleInviteNotFoundException(InviteNotFoundException e){
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
+
+
 }
