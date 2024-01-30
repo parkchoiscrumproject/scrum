@@ -3,6 +3,8 @@ package com.parkchoi.scrum.domain.team.controller;
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.request.TeamInvitationRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
+import com.parkchoi.scrum.domain.team.dto.response.MemberListResponseDTO;
+import com.parkchoi.scrum.domain.team.dto.response.TeamListResponseDTO;
 import com.parkchoi.scrum.domain.team.service.TeamService;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -91,6 +93,32 @@ public class TeamController {
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 초대 거절을 성공하였습니다."));
     }
+
+    // 나의 팀 목록 조회
+    @Operation(summary = "팀 목록 조회 API", description = "현재 유저가 참여하고 있는 팀의 목록을 조회합니다.")
+    @GetMapping("/my-teams")
+    public ResponseEntity<ApiResponse<?>> findMyTeams(
+            @CookieValue(name = "accessToken", required = false) String accessToken
+    ){
+        TeamListResponseDTO teams = teamService.findMyTeams(accessToken);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccess(teams,"팀 조회 성공"));
+    }
+
+
+    // 팀원 목록 조회
+    @Operation(summary = "팀원 목록 조회 API", description = "파라미터로 넣은 team_id를 받아 해당 팀의 멤버들을 조회합니다.")
+    @GetMapping("/team/{team_id}/members")
+    public ResponseEntity<ApiResponse<?>> findTeamMembers(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId){
+
+        MemberListResponseDTO members = teamService.findTeamMembers(accessToken,teamId);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccess(members,"팀원 목록 조회 성공"));
+
+    }
+
 
 
 
