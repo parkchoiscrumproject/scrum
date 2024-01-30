@@ -17,4 +17,6 @@ public interface InviteTeamListRepository extends JpaRepository<InviteTeamList, 
 
     Optional<List<InviteTeamList>> findByTeamAndParticipantIsTrue(Team team);
 
+    void deleteByUserAndTeamAndParticipantIsTrue(User user,Team team);
+
 }

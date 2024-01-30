@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.team.service;
 
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
+import com.parkchoi.scrum.domain.team.dto.request.KickTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.request.TeamInvitationRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.response.*;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
@@ -210,25 +211,78 @@ public class TeamService {
     }
 
 
-    // 팀에 속해있는 멤버들을 조회(수정중)
-//    public MemberListResponseDTO findTeamMembers(String accessToken,Long teamId){
-//        Long userId = jwtUtil.getUserId(accessToken);
-//
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
-//
-//        Team team = teamRepository.findById(teamId)
-//                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
-//
-//        List<InviteTeamList> inviteTeamLists = inviteTeamListRepository.findByTeamAndParticipantIsTrue(team)
-//                .orElse(new ArrayList<>());
-//    }
+    // 팀에 속해있는 멤버들을 조회
+    public MemberListResponseDTO findTeamMembers(String accessToken,Long teamId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        List<InviteTeamList> inviteTeamLists = inviteTeamListRepository.findByTeamAndParticipantIsTrue(team)
+                .orElse(new ArrayList<>());
+
+        if(inviteTeamLists.isEmpty()){
+            throw new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다.");
+        }
+
+        List<MemberDTO> members = inviteTeamLists.stream()
+                .map(member ->{
+                    User u = member.getUser();
+                    return MemberDTO.builder()
+                            .userId(u.getId())
+                            .nickname(u.getNickname())
+                            .statusMessage(u.getStatusMessage())
+                            .profileImage(u.getProfileImage())
+                            .isOnline(u.getIsOnline())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return new MemberListResponseDTO(members);
+    }
+
+    // 팀 나가기
+    @Transactional
+    public void leaveTeam(String accessToken, Long teamId){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+
+        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
 
 
+        inviteTeamListRepository.delete(inviteTeamList);
 
+    }
 
+    // 팀원 추방
+    @Transactional
+    public void kickTeam(String accessToken, Long teamId, KickTeamRequestDTO dto){
+        Long userId = jwtUtil.getUserId(accessToken);
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(()->new UserNotFoundException("유저 없음"));
 
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(()->new TeamNotFoundException("팀이 존재하지 않습니다."));
 
+        if(team.getUser()!=user){
+            throw new NoTeamLeaderException("리더만 삭제 가능합니다.");
+        }else{
+            Long kickUserId = dto.getUserId();
+            User kickUser = userRepository.findById(kickUserId)
+                    .orElseThrow(() -> new UserNotFoundException("추방할 유저 없음"));
+
+            inviteTeamListRepository.deleteByUserAndTeamAndParticipantIsTrue(kickUser,team);
+        }
+    }
 
 }
