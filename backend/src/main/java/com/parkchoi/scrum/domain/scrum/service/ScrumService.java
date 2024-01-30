@@ -148,7 +148,7 @@ public class ScrumService {
         Optional<ScrumParticipant> byScrumAndUser = scrumParticipantRepository.findByUserAndScrum(user, scrum);
         // 아직 참여하지 않은 스크럼이면
         if(byScrumAndUser.isEmpty()){
-            // 멤버가 꽉찼으면
+            // 멤버가 꽉찼으면ㅅ
             if(scrum.getCurrentMember() == scrum.getMaxMember()){
                 throw new MaxMemberScrumException("참여 최대 인원에 도달했습니다.");
             }

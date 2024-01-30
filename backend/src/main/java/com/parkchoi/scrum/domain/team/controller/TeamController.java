@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.team.controller;
 
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
+import com.parkchoi.scrum.domain.team.dto.request.KickTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.request.TeamInvitationRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
 import com.parkchoi.scrum.domain.team.dto.response.TeamListResponseDTO;
@@ -119,8 +120,31 @@ public class TeamController {
 //    }
 
 
+    // 팀 나가기
+    @Operation(summary = "팀 나가기 API", description = "파라미터로 넣은 team_id를 받아 해당 팀을 나갑니다.")
+    @DeleteMapping("/team/{team_id}/leave")
+    public ResponseEntity<ApiResponse<?>> leaveTeam(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId){
 
+        teamService.leaveTeam(accessToken,teamId);
 
+        return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 나가기 성공"));
+    }
+
+    // 팀원 추방
+    @Operation(summary = "팀원 추방 API", description = "파라미터로 넣은 team_id를 받아 해당 팀원을 추방시킵니다.")
+    @DeleteMapping("/team/{team_id}/kick")
+    public ResponseEntity<ApiResponse<?>> kickTeam(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @PathVariable(name = "team_id") Long teamId,
+            @RequestBody KickTeamRequestDTO dto
+            ){
+
+        teamService.kickTeam(accessToken,teamId,dto);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 추방 성공"));
+    }
 
 
 
