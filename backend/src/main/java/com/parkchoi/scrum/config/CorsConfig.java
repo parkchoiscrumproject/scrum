@@ -17,7 +17,7 @@ public class CorsConfig{
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000"));
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "https://ssgcrum.store"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 
