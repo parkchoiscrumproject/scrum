@@ -4,10 +4,10 @@ import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Length;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -40,7 +40,7 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedDate;
     @Column(length = 100, nullable = true)
-    @Length(max = 100, message = "상태메시지는 100자를 초과할 수 없습니다.")
+    @Size(max = 100, message = "상태메시지는 100자를 초과할 수 없습니다.")
     private String statusMessage;
     @Column(nullable = false)
     private String profileImage;
