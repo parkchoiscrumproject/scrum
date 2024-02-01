@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.annotation.Configuration;
 
 @OpenAPIDefinition(
-        servers = {@Server(url ="https://ssgscrum.store", description = "기본 서버 주소")},
+        servers = {@Server(url ="https://ssgcrum.store", description = "기본 서버 주소")},
         info = @Info(
                 title = "Scrum API 문서",
                 description = "스크럼 프로젝트 문서입니다.\n" +
