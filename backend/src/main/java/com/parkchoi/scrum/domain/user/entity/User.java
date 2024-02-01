@@ -2,6 +2,9 @@ package com.parkchoi.scrum.domain.user.entity;
 
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,8 +27,11 @@ public class User {
     @Column(nullable = false)
     private String type;
     @Column(unique = true, nullable = false)
+    @Email(message = "이메일 형식이 아닙니다.")
+    @NotBlank(message = "이메일은 항상 입력돼야 합니다.")
     private String email;
     @Column(unique = true, nullable = false, length = 20)
+    @NotBlank(message = "닉네임은 항상 입력돼야 합니다.")
     private String nickname;
     @CreatedDate
     @Column(nullable = false)
@@ -34,11 +40,12 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedDate;
     @Column(length = 100, nullable = true)
+    @Size(max = 100, message = "상태메시지는 100자를 초과할 수 없습니다.")
     private String statusMessage;
     @Column(nullable = false)
     private String profileImage;
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<InviteTeamList> inviteTeamList = new ArrayList<>();
+    private List<InviteTeamList>  inviteTeamList = new ArrayList<>();
     @Column(nullable = false)
     private Boolean isOnline = false;
 

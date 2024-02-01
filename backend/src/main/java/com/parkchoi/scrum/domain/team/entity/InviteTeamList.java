@@ -32,6 +32,4 @@ public class InviteTeamList {
     public void acceptInvitation(){
         this.participant = true;
     }
-
-
 }
