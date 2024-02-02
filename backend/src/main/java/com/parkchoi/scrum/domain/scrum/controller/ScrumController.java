@@ -6,16 +6,20 @@ import com.parkchoi.scrum.domain.scrum.service.ScrumService;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "03.Scrum")
+@Tag(name = "03.Scrum", description = "스크럼 API")
+@Validated
 public class ScrumController {
 
     private final ScrumService scrumService;
@@ -26,7 +30,7 @@ public class ScrumController {
     public ResponseEntity<ApiResponse<?>> createScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId,
-            @RequestBody CreateScrumRequestDTO dto
+            @RequestBody @Valid CreateScrumRequestDTO dto
             ){
         scrumService.createScrum(accessToken, teamId, dto);
 
@@ -38,7 +42,7 @@ public class ScrumController {
     @GetMapping("team/{team_id}/scrums")
     public ResponseEntity<ApiResponse<?>> findScrums(
             @CookieValue(name = "accessToken", required = false) String accessToken,
-            @PathVariable(name = "team_id") Long teamId
+            @PathVariable(name = "team_id") @NotNull Long teamId
     ){
         ScrumRoomListResponseDTO scrums = scrumService.findScrums(accessToken, teamId);
 
@@ -50,8 +54,8 @@ public class ScrumController {
     @PostMapping("team/{team_id}/scrum/{scrum_id}/enter")
     public ResponseEntity<ApiResponse<?>> enterScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
-            @PathVariable(name = "team_id") Long teamId,
-            @PathVariable(name = "scrum_id") Long scrumId
+            @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
+            @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
     ){
         scrumService.enterScrum(accessToken, teamId, scrumId);
 
@@ -63,8 +67,8 @@ public class ScrumController {
     @PatchMapping("team/{team_id}/scrum/{scrum_id}/delete")
     public ResponseEntity<ApiResponse<?>> removeScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
-            @PathVariable(name = "team_id") Long teamId,
-            @PathVariable(name = "scrum_id") Long scrumId
+            @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
+            @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
     ){
         scrumService.removeScrum(accessToken, teamId, scrumId);
 
@@ -76,8 +80,8 @@ public class ScrumController {
     @PatchMapping("team/{team_id}/scrum/{scrum_id}/start")
     public ResponseEntity<ApiResponse<?>> startScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
-            @PathVariable(name = "team_id") Long teamId,
-            @PathVariable(name = "scrum_id") Long scrumId
+            @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.")Long teamId,
+            @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.")Long scrumId
     ){
         scrumService.startScrum(accessToken, teamId, scrumId);
 
@@ -89,8 +93,8 @@ public class ScrumController {
     @PatchMapping("team/{team_id}/scrum/{scrum_id}/end")
     public ResponseEntity<ApiResponse<?>> endScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
-            @PathVariable(name = "team_id") Long teamId,
-            @PathVariable(name = "scrum_id") Long scrumId
+            @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
+            @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
     ){
         scrumService.endScrum(accessToken, teamId, scrumId);
 
