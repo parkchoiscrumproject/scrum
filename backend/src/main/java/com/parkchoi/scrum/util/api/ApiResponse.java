@@ -7,11 +7,10 @@ import lombok.Getter;
 @Schema(title = "api 반환형")
 public class ApiResponse<T> {
 
-    // 상태 구분1
+    // 상태 구분
     private static final String SUCCESS_STATUS = "success";
     private static final String FAIL_STATUS = "fail";
     private static final String ERROR_STATUS = "error";
-
 
     private String status;
     private T data;

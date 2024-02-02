@@ -2,10 +2,7 @@ package com.parkchoi.scrum.domain.user.service;
 
 import com.parkchoi.scrum.domain.log.entity.UserLog;
 import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
-import com.parkchoi.scrum.domain.user.dto.response.UserInviteInfoResponseDTO;
-import com.parkchoi.scrum.domain.user.dto.response.UserLoginInfoResponseDTO;
-import com.parkchoi.scrum.domain.user.dto.response.UserNicknameUpdateResponseDTO;
-import com.parkchoi.scrum.domain.user.dto.response.UserProfileImageUpdateResponseDTO;
+import com.parkchoi.scrum.domain.user.dto.response.*;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
@@ -139,13 +136,15 @@ public class UserService {
 
     // 상태메시지 변경
     @Transactional
-    public void updateUserStatusMessage(String accessToken, String statusMessage){
+    public UserStatusMessageUpdateResponseDTO updateUserStatusMessage(String accessToken, String statusMessage){
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("유저 없음"));
 
         user.updateStatusMessage(statusMessage);
+
+        return new UserStatusMessageUpdateResponseDTO(statusMessage);
     }
 
 }
