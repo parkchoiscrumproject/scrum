@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 @Getter
-@Schema(title = "api 반환형")
+@Schema(title = "API 응답 DTO")
 public class ApiResponse<T> {
 
     // 상태 구분
@@ -12,8 +12,11 @@ public class ApiResponse<T> {
     private static final String FAIL_STATUS = "fail";
     private static final String ERROR_STATUS = "error";
 
+    @Schema(description = "API 응답 상태, success : 성공, fail : 실패, error : 서버에러")
     private String status;
+    @Schema(description = "API 응답 데이터, null = 반환 데이터 없음, null != 반환 데이터 있음")
     private T data;
+    @Schema(description = "API 응답 메시지, message로 구체적인 상황 전달")
     private String message;
 
     public ApiResponse(String status, T data, String message) {
