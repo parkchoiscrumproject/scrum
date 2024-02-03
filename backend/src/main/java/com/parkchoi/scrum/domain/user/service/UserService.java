@@ -36,7 +36,7 @@ public class UserService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
 
         user.isOnlineFalse();
 
@@ -62,7 +62,7 @@ public class UserService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
 
         // 로그인 상태 true 변경
         user.isOnlineTrue();
@@ -112,7 +112,7 @@ public class UserService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
 
         user.updateNickname(nickname);
 
@@ -125,7 +125,7 @@ public class UserService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
 
         String url = s3UploadService.saveFile(file);
 
@@ -140,7 +140,7 @@ public class UserService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
 
         user.updateStatusMessage(statusMessage);
 
