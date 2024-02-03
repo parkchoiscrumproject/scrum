@@ -71,7 +71,7 @@ public class UserController{
     public ResponseEntity<ApiResponse<?>> checkDuplicationNickname(
             @PathVariable("nickname")
             @Size(max = 10, message = "닉네임은 최대 10자까지 가능합니다.")
-            @NotNull(message = "닉네임을 입력해주세요.")
+            @NotBlank(message = "닉네임을 입력해주세요.")
             @Pattern(regexp = "^[가-힣A-Za-z]+$", message = "닉네임은 한글, 영어만 가능합니다.")
             @Schema(description = "닉네임(최대 10글자, 한글 및 영어만 가능)")
             String nickname) {
