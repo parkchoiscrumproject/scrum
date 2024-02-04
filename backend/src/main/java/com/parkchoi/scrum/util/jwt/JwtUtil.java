@@ -1,9 +1,6 @@
 package com.parkchoi.scrum.util.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +34,8 @@ public class JwtUtil {
         } catch (ExpiredJwtException e) {
             // 만료된 JWT에서도 userId는 가져옴.
             return e.getClaims().get("userId", Long.class);
+        } catch (SignatureException e){
+            throw e;
         }
     }
 
