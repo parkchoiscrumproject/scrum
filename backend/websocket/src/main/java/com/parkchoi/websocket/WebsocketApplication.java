@@ -1,13 +1,13 @@
-package com.parkchoi.webrtc;
+package com.parkchoi.websocket;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class WebrtcApplication {
+public class WebsocketApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(WebrtcApplication.class, args);
+		SpringApplication.run(WebsocketApplication.class, args);
 	}
 
 }

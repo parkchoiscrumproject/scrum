@@ -1,4 +1,4 @@
-package com.parkchoi.webrtc.handler;
+package com.parkchoi.websocket.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
