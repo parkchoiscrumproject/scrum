@@ -258,6 +258,8 @@ public class TeamService {
         InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
 
+        //멤버 감소
+        team.decreaseCurrentMember();
 
         inviteTeamListRepository.delete(inviteTeamList);
 
@@ -280,6 +282,9 @@ public class TeamService {
             Long kickUserId = dto.getUserId();
             User kickUser = userRepository.findById(kickUserId)
                     .orElseThrow(() -> new UserNotFoundException("추방할 유저 없음"));
+
+            //멤버 감소
+            team.decreaseCurrentMember();
 
             inviteTeamListRepository.deleteByUserAndTeamAndParticipantIsTrue(kickUser,team);
         }

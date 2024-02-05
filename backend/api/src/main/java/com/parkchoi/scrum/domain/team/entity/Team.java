@@ -54,4 +54,12 @@ public class Team {
         this.teamProfileImage = teamProfileImage;
     }
 
+    public void decreaseCurrentMember(){
+        if(this.currentMember > 0){
+            this.currentMember -= 1;
+        }else{
+            throw new IllegalStateException("팀 멤버 수가 0보다 작을 수 없습니다.");
+        }
+    }
+
 }
