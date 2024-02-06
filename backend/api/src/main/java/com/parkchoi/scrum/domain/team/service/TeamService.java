@@ -113,7 +113,7 @@ public class TeamService {
         }
 
         //팀 삭제
-//        teamRepository.deleteByIdAndUserId(teamId,userId);
+        teamRepository.deleteByIdAndUserId(teamId,userId);
     }
 
 
