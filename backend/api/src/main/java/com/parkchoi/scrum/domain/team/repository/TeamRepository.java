@@ -10,9 +10,9 @@ import org.springframework.stereotype.Repository;
 public interface TeamRepository extends JpaRepository<Team, Long> {
 
     //팀 삭제
-//    @Modifying
-//    @Query("delete from Team t where t.id = :teamId and t.user.id = :userId")
-//    void deleteByIdAndUserId(Long id, Long userId);
+    @Modifying
+    @Query("delete from Team t where t.id = :teamId and t.user.id = :userId")
+    void deleteByIdAndUserId(Long teamId, Long userId);
 
 
 }
