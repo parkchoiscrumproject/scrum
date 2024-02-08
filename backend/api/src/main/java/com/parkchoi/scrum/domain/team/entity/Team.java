@@ -43,7 +43,6 @@ public class Team {
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<InviteTeamList> inviteTeamList = new ArrayList<>();
 
-
     @Builder
     public Team(String name, String description, int currentMember, int maxMember, User user, String teamProfileImage) {
         this.name = name;
