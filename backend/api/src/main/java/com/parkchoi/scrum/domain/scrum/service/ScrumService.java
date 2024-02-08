@@ -4,10 +4,8 @@ import com.parkchoi.scrum.domain.scrum.dto.request.CreateScrumRequestDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
-import com.parkchoi.scrum.domain.scrum.entity.ScrumInfo;
 import com.parkchoi.scrum.domain.scrum.entity.ScrumParticipant;
 import com.parkchoi.scrum.domain.scrum.exception.*;
-import com.parkchoi.scrum.domain.scrum.repository.ScrumInfoRepository;
 import com.parkchoi.scrum.domain.scrum.repository.ScrumParticipantRepository;
 import com.parkchoi.scrum.domain.scrum.repository.ScrumRepository;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
@@ -36,7 +34,6 @@ public class ScrumService {
 
     private final UserRepository userRepository;
     private final ScrumRepository scrumRepository;
-    private final ScrumInfoRepository scrumInfoRepository;
     private final ScrumParticipantRepository scrumParticipantRepository;
     private final InviteTeamListRepository inviteTeamListRepository;
     private final TeamRepository teamRepository;
@@ -60,15 +57,17 @@ public class ScrumService {
                     .maxMember(dto.getMaxMember())
                     .currentMember(1)
                     .team(team)
-                    .user(user).build();
+                    .user(user)
+                    .subject(dto.getSubject())
+                    .build();
             scrumRepository.save(scrum);
 
             // 스크럼 정보 생성
-            ScrumInfo scrumInfo = ScrumInfo.builder()
-                    .scrum(scrum)
-                    .subject(dto.getSubject())
-                    .isStart(false).build();
-            scrumInfoRepository.save(scrumInfo);
+//            ScrumInfo scrumInfo = ScrumInfo.builder()
+//                    .scrum(scrum)
+//                    .subject(dto.getSubject())
+//                    .isStart(false).build();
+//            scrumInfoRepository.save(scrumInfo);
 
             // 스크럼 참여자 정보 생성
             ScrumParticipant scrumParticipant = ScrumParticipant.builder()
@@ -94,21 +93,20 @@ public class ScrumService {
         InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
 
-        Optional<List<Scrum>> scrumList = scrumRepository.findByTeamWithFetchJoinUserAndScrumInfoAndDeleteDateIsNull(team);
+        List<Scrum> scrumList = scrumRepository.findByTeamWithFetchJoinUserAndDeleteDateIsNull(team);
 
-        List<Scrum> scrums = scrumList.orElse(new ArrayList<>());
         List<ScrumRoomDTO> scrumRoomDTOList = new ArrayList<>();
 
-        for(int i=0; i<scrums.size(); i++){
-            Scrum s = scrums.get(i);
-            if(s.getScrumInfo().getEndTime() == null){
+        for(int i=0; i<scrumList.size(); i++){
+            Scrum s = scrumList.get(i);
+            if(s.getEndTime() == null){
                 ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.builder()
                         .scrumId(s.getId())
                         .name(s.getName())
                         .profileImage(s.getUser().getProfileImage())
                         .maxMember(s.getMaxMember())
                         .currentMember(s.getCurrentMember())
-                        .isRunning(s.getScrumInfo().getIsStart())
+                        .isRunning(s.getIsStart())
                         .nickname(s.getUser().getNickname()).build();
 
                 scrumRoomDTOList.add(scrumRoomDTO);
@@ -139,11 +137,11 @@ public class ScrumService {
             throw new NotScrumLeaderException("삭제된 스크럼입니다.");
         }
 
-        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
-        // 이미 종료된 스크럼이면
-        if(scrumInfo.getEndTime() != null){
-            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
-        }
+//        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
+//        // 이미 종료된 스크럼이면
+//        if(scrumInfo.getEndTime() != null){
+//            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
+//        }
 
         Optional<ScrumParticipant> byScrumAndUser = scrumParticipantRepository.findByUserAndScrum(user, scrum);
         // 아직 참여하지 않은 스크럼이면
@@ -210,19 +208,17 @@ public class ScrumService {
         Scrum scrum = scrumRepository.findById(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
 
-        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
-
         if (!scrum.getUser().getId().equals(userId)) {
             throw new NotScrumLeaderException("리더만 시작 가능합니다.");
         }
 
         // 이미 스크럼이 시작했다면
-        if (scrumInfo.getIsStart()){
+        if (scrum.getIsStart()){
             throw new AlreadyScrumStartException("이미 시작된 스크럼입니다.");
         }
 
         // 시작 상태 변경과 시간 추가
-        scrumInfo.startScrum();
+        scrum.startScrum();
     }
 
     // 스크럼 종료
@@ -242,8 +238,6 @@ public class ScrumService {
         Scrum scrum = scrumRepository.findById(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
 
-        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
-
         // 이미 삭제된 스크럼이면
         if (scrum.getDeleteDate() != null){
             throw new AlreadyScrumRemoveException("이미 삭제된 스크럼입니다.");
@@ -254,17 +248,17 @@ public class ScrumService {
         }
 
         // 아직 스크럼이 시작하지 않았으면
-        if (!scrumInfo.getIsStart()){
+        if (!scrum.getIsStart()){
             throw new NotStartScrumException("아직 스크럼을 시작하지 않았습니다.");
         }
 
         // 이미 스크럼이 종료 상태라면
-        if (scrumInfo.getEndTime() != null){
+        if (scrum.getEndTime() != null){
             throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
         }
 
 
-        scrumInfo.endScrum();
+        scrum.endScrum();
     }
 
     // 스크럼 생성 가능 여부 확인
@@ -274,8 +268,8 @@ public class ScrumService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("유저 없음"));
 
-        Optional<List<Scrum>> scrumList = scrumRepository.findByUserWithFetchJoinScrumInfoAndDeleteDateIsNullAndEndTimeIsNull(user);
-        if(scrumList.isPresent() && !scrumList.get().isEmpty()){
+        List<Scrum> scrumList = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
+        if(!scrumList.isEmpty()){
             return false;
         }else{
             return true;

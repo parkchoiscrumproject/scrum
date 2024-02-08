@@ -36,7 +36,6 @@ public class JwtFilter extends OncePerRequestFilter {
     @Value("#{${jwt.refresh-validity}}")
     private Long refreshTokenTime;
     private final JwtUtil jwtUtil;
-    private final RedisTemplate<String, String> redisTemplate;
 
 
     @Override // 이 주소로 오는 건 토큰 없어도 됨.
