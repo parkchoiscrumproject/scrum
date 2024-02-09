@@ -260,9 +260,8 @@ public class ScrumService {
                 .orElseThrow(() -> new UserNotFoundException("유저 없음"));
 
         long start = System.currentTimeMillis();
-        boolean result = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
+        boolean result = scrumRepository.existsByUserAndDeleteDateIsNullAndEndTimeIsNull(user);
         log.info("실행 시간 : " + String.valueOf(System.currentTimeMillis() - start));
-
         if(result){
             return false;
         }else{

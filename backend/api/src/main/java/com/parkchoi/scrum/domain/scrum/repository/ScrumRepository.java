@@ -17,6 +17,5 @@ public interface ScrumRepository extends JpaRepository<Scrum, Long> {
     List<Scrum> findByTeamWithFetchJoinUserAndDeleteDateIsNull(@Param("team") Team team);
 
     // 삭제 되지 않고, 진행이 종료되지 않은 유저의 스크럼 개수 판단(0보다 크면 true)
-    @Query("SELECT COUNT(s.id) > 0 FROM Scrum s WHERE s.user = :user AND s.deleteDate IS NULL AND s.endTime IS NULL")
-    boolean findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(@Param("user") User user);
+    boolean existsByUserAndDeleteDateIsNullAndEndTimeIsNull(User user);
 }
