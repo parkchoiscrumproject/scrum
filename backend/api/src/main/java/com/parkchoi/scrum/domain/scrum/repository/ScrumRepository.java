@@ -16,7 +16,7 @@ public interface ScrumRepository extends JpaRepository<Scrum, Long> {
     @Query("SELECT s FROM Scrum s JOIN FETCH s.user WHERE s.team = :team AND s.deleteDate IS NULL")
     List<Scrum> findByTeamWithFetchJoinUserAndDeleteDateIsNull(@Param("team") Team team);
 
-    // 삭제되지 않고 현재 유저가 속한 스크럼 모두 조회
-    @Query("SELECT s FROM Scrum s WHERE s.user = :user AND s.deleteDate IS NULL AND s.endTime IS NULL")
-    List<Scrum> findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(@Param("user") User user);
+    // 삭제 되지 않고, 진행이 종료되지 않은 유저의 스크럼 개수 판단(0보다 크면 true)
+    @Query("SELECT COUNT(s.id) > 0 FROM Scrum s WHERE s.user = :user AND s.deleteDate IS NULL AND s.endTime IS NULL")
+    boolean findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(@Param("user") User user);
 }

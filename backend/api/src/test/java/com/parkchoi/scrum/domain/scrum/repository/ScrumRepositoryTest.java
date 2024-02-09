@@ -90,15 +90,10 @@ class ScrumRepositoryTest {
     void 삭제되지_않고_유저가_속한_스크럼_모두조회(){
         // given
         // when
-        List<Scrum> scrums = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
+        boolean result = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
 
         // then
-        Scrum scrum = scrums.get(0);
-
-        Assertions.assertNotNull(scrum.getUser());
-
-        Assertions.assertNull(scrum.getEndTime());
-        Assertions.assertNull(scrum.getDeleteDate());
+        Assertions.assertTrue(result);
 
     }
 }

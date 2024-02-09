@@ -62,13 +62,6 @@ public class ScrumService {
                     .build();
             scrumRepository.save(scrum);
 
-            // 스크럼 정보 생성
-//            ScrumInfo scrumInfo = ScrumInfo.builder()
-//                    .scrum(scrum)
-//                    .subject(dto.getSubject())
-//                    .isStart(false).build();
-//            scrumInfoRepository.save(scrumInfo);
-
             // 스크럼 참여자 정보 생성
             ScrumParticipant scrumParticipant = ScrumParticipant.builder()
                     .scrum(scrum)
@@ -94,7 +87,6 @@ public class ScrumService {
                 .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
 
         List<Scrum> scrumList = scrumRepository.findByTeamWithFetchJoinUserAndDeleteDateIsNull(team);
-
         List<ScrumRoomDTO> scrumRoomDTOList = new ArrayList<>();
 
         for(int i=0; i<scrumList.size(); i++){
@@ -137,11 +129,10 @@ public class ScrumService {
             throw new NotScrumLeaderException("삭제된 스크럼입니다.");
         }
 
-//        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
 //        // 이미 종료된 스크럼이면
-//        if(scrumInfo.getEndTime() != null){
-//            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
-//        }
+        if(scrum.getEndTime() != null){
+            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
+        }
 
         Optional<ScrumParticipant> byScrumAndUser = scrumParticipantRepository.findByUserAndScrum(user, scrum);
         // 아직 참여하지 않은 스크럼이면
@@ -187,8 +178,8 @@ public class ScrumService {
         if (scrum.getDeleteDate() != null){
             throw new AlreadyScrumRemoveException("이미 삭제된 스크럼입니다.");
         }
-        // 삭제 시간 추가
-        scrum.addDeleteDate();
+        // 스크럼 삭제 진행
+        scrum.deleteScrum();
     }
 
     // 스크럼 시작
@@ -268,8 +259,11 @@ public class ScrumService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("유저 없음"));
 
-        List<Scrum> scrumList = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
-        if(!scrumList.isEmpty()){
+        long start = System.currentTimeMillis();
+        boolean result = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
+        log.info("실행 시간 : " + String.valueOf(System.currentTimeMillis() - start));
+
+        if(result){
             return false;
         }else{
             return true;

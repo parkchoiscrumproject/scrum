@@ -94,7 +94,10 @@ class ScrumServiceTest {
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
 
-        CreateScrumRequestDTO createScrumRequestDTO = new CreateScrumRequestDTO("이름", 15, "주제");
+        CreateScrumRequestDTO createScrumRequestDTO = CreateScrumRequestDTO.builder()
+                .maxMember(15)
+                .name("이름")
+                .subject("주제").build();
 
         // when
         scrumService.createScrum(accessToken, teamId, createScrumRequestDTO);

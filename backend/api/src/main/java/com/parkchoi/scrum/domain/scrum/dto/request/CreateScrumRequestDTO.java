@@ -2,9 +2,11 @@ package com.parkchoi.scrum.domain.scrum.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 @Schema(description = "스크럼 생성 요청 DTO")
 public class CreateScrumRequestDTO {
     @NotBlank(message = "스크럼의 제목은 필수입니다.")
@@ -22,6 +24,7 @@ public class CreateScrumRequestDTO {
     @Schema(description = "스크럼 주제")
     private String subject;
 
+    @Builder
     public CreateScrumRequestDTO(String name, int maxMember, String subject) {
         this.name = name;
         this.maxMember = maxMember;
