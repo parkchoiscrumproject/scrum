@@ -43,7 +43,6 @@ public class Team {
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<InviteTeamList> inviteTeamList = new ArrayList<>();
 
-
     @Builder
     public Team(String name, String description, int currentMember, int maxMember, User user, String teamProfileImage) {
         this.name = name;
@@ -52,6 +51,14 @@ public class Team {
         this.maxMember = maxMember;
         this.user = user;
         this.teamProfileImage = teamProfileImage;
+    }
+
+    public void decreaseCurrentMember(){
+        if(this.currentMember > 0){
+            this.currentMember -= 1;
+        }else{
+            throw new IllegalStateException("팀 멤버 수가 0보다 작을 수 없습니다.");
+        }
     }
 
 }

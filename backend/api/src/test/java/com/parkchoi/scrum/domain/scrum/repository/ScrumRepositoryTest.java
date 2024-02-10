@@ -1,7 +1,6 @@
 package com.parkchoi.scrum.domain.scrum.repository;
 
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
-import com.parkchoi.scrum.domain.scrum.entity.ScrumInfo;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
@@ -28,15 +27,11 @@ class ScrumRepositoryTest {
     @Autowired
     private TeamRepository teamRepository;
     @Autowired
-    private ScrumInfoRepository scrumInfoRepository;
-    @Autowired
     private TestEntityManager tem;
 
     private Team team;
     private User user;
     private Scrum scrum;
-    private ScrumInfo scrumInfo;
-
     @BeforeEach
     void setUp(){
         user = User.builder()
@@ -62,14 +57,10 @@ class ScrumRepositoryTest {
                 .team(team)
                 .currentMember(1)
                 .name("스크럼이름")
+                .subject("주제")
                 .maxMember(15).build();
         scrumRepository.save(scrum);
 
-        scrumInfo = ScrumInfo.builder()
-                .isStart(false)
-                .scrum(scrum)
-                .subject("주제").build();
-        scrumInfoRepository.save(scrumInfo);
         tem.clear();
     }
 
@@ -78,11 +69,10 @@ class ScrumRepositoryTest {
     void 삭제되지_않고_팀에_속한_스크럼_모두조회(){
         // given
         // when
-        List<Scrum> scrums = scrumRepository.findByTeamWithFetchJoinUserAndScrumInfoAndDeleteDateIsNull(team).get();
+        List<Scrum> scrums = scrumRepository.findByTeamWithFetchJoinUserAndDeleteDateIsNull(team);
 
         // then
         Assertions.assertFalse(scrums.isEmpty());
-        Assertions.assertNotNull(scrums.get(0).getScrumInfo());
         Assertions.assertNotNull(scrums.get(0).getTeam());
 
         Scrum scrum = scrums.get(0);
@@ -91,8 +81,7 @@ class ScrumRepositoryTest {
         User fetchUser = scrum.getUser();
         Assertions.assertEquals("test@test.com", fetchUser.getEmail());
 
-        ScrumInfo fetchScrumInfo = scrum.getScrumInfo();
-        Assertions.assertEquals("주제", fetchScrumInfo.getSubject());
+        Assertions.assertEquals("주제", scrum.getSubject());
 
     }
 
@@ -101,15 +90,10 @@ class ScrumRepositoryTest {
     void 삭제되지_않고_유저가_속한_스크럼_모두조회(){
         // given
         // when
-        List<Scrum> scrums = scrumRepository.findByUserWithFetchJoinScrumInfoAndDeleteDateIsNullAndEndTimeIsNull(user).get();
+        boolean result = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
 
         // then
-        Scrum scrum = scrums.get(0);
-
-        Assertions.assertNotNull(scrum.getUser());
-
-        Assertions.assertNull(scrum.getScrumInfo().getEndTime());
-        Assertions.assertNull(scrum.getDeleteDate());
+        Assertions.assertTrue(result);
 
     }
 }
