@@ -35,8 +35,7 @@ public class UserService {
     public void logout(String accessToken, HttpServletResponse response){
         Long userId = jwtUtil.getUserId(accessToken);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
+        User user = findUser(userId);
 
         user.isOnlineFalse();
 
@@ -61,8 +60,7 @@ public class UserService {
     public UserLoginInfoResponseDTO getUserInfo(String accessToken) {
         Long userId = jwtUtil.getUserId(accessToken);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
+        User user = findUser(userId);
 
         // 로그인 상태 true 변경
         user.isOnlineTrue();
@@ -73,14 +71,12 @@ public class UserService {
 
         userLogRepository.save(build);
 
-        UserLoginInfoResponseDTO userInfoDTO = UserLoginInfoResponseDTO.builder()
+        return UserLoginInfoResponseDTO.builder()
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImage(user.getProfileImage())
                 .statusMessage(user.getStatusMessage())
                 .isOnline(user.getIsOnline()).build();
-
-        return userInfoDTO;
     }
 
     // 닉네임 중복 검사
@@ -96,13 +92,11 @@ public class UserService {
         }else{
             User user = byEmail.get();
 
-            UserInviteInfoResponseDTO build = UserInviteInfoResponseDTO.builder()
+            return UserInviteInfoResponseDTO.builder()
                     .userId(user.getId())
                     .profileImage(user.getProfileImage())
                     .nickname(user.getNickname())
                     .build();
-
-            return build;
         }
     }
 
@@ -111,8 +105,7 @@ public class UserService {
     public UserNicknameUpdateResponseDTO updateUserNickname(String accessToken, String nickname){
         Long userId = jwtUtil.getUserId(accessToken);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
+        User user = findUser(userId);
 
         user.updateNickname(nickname);
 
@@ -124,8 +117,7 @@ public class UserService {
     public UserProfileImageUpdateResponseDTO updateUserProfileImage(String accessToken, MultipartFile file) throws IOException {
         Long userId = jwtUtil.getUserId(accessToken);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
+        User user = findUser(userId);
 
         String url = s3UploadService.saveFile(file);
 
@@ -139,12 +131,16 @@ public class UserService {
     public UserStatusMessageUpdateResponseDTO updateUserStatusMessage(String accessToken, String statusMessage){
         Long userId = jwtUtil.getUserId(accessToken);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
+        User user = findUser(userId);
 
         user.updateStatusMessage(statusMessage);
 
         return new UserStatusMessageUpdateResponseDTO(statusMessage);
+    }
+
+    // 유저 Id로 유저 찾기
+    private User findUser(Long userId){
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
     }
 
 }

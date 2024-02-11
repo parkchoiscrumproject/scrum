@@ -90,7 +90,7 @@ class ScrumRepositoryTest {
     void 삭제되지_않고_유저가_속한_스크럼_모두조회(){
         // given
         // when
-        boolean result = scrumRepository.findByUserWithAndDeleteDateIsNullAndEndTimeIsNull(user);
+        boolean result = scrumRepository.existsByUserAndDeleteDateIsNullAndEndTimeIsNull(user);
 
         // then
         Assertions.assertTrue(result);
