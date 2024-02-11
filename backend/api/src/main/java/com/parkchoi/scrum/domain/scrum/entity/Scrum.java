@@ -69,8 +69,9 @@ public class Scrum {
         this.currentMember = currentMember + 1;
     }
 
-    public void addDeleteDate(){
+    public void deleteScrum(){
         this.deleteDate = LocalDateTime.now();
+        this.isStart = true;
     }
 
     public void startScrum(){
@@ -80,6 +81,7 @@ public class Scrum {
 
     public void endScrum(){
         this.endTime = LocalDateTime.now();
+        this.isStart = true;
     }
 
 }

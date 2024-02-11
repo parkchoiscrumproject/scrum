@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -25,8 +26,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         log.error("유효성 검사 실패 예외 발생");
+        AtomicInteger index = new AtomicInteger(1);
+
         String errorMessage = e.getBindingResult().getAllErrors().stream()
-                .map(ObjectError::getDefaultMessage)
+                .map(error -> index.getAndIncrement() + ". " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
         return ResponseEntity.status(400).body(ApiResponse.createClientError(errorMessage));
@@ -36,9 +39,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<?>> handleConstraintViolationException(ConstraintViolationException e){
         log.error("유효성 검사 실패 예외 발생");
+        AtomicInteger index = new AtomicInteger(1);
 
         String errorMessage = e.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
+                .map(error -> index.getAndIncrement() + ". " + error.getMessage())
                 .collect(Collectors.joining(", "));
 
         return ResponseEntity.status(400).body(ApiResponse.createClientError(errorMessage));
