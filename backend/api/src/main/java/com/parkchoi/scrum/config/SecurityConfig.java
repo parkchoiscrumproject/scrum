@@ -32,25 +32,25 @@ public class SecurityConfig {
                 // csrf 보호 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
                 // cors설정 따름
-                .cors((cors) -> cors.configurationSource(corsConfigurationSource))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 // 세션 사용 안함(JWT 사용)
-                .sessionManagement((sessionManagement) ->
+                .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 // 모든 요청 허용
-                .authorizeHttpRequests(authorize -> {
-                    authorize.anyRequest().permitAll();
-                })
+                .authorizeHttpRequests(authorize ->
+                    authorize.anyRequest().permitAll()
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 // oauth 로그인
-                .oauth2Login((oauth) -> {
+                .oauth2Login(oauth -> {
                     oauth.successHandler(successHandler);
                     oauth.failureHandler(failureHandler);
                     // oauth 로그인 성공 후 사용자 정보를 가져오기 위함.
                     // 즉 code -> accessToken 과정을 거친 후 동작.
-                    oauth.userInfoEndpoint((userInfo) -> {
-                        userInfo.userService(principalOAuth2UserService);
-                    });
+                    oauth.userInfoEndpoint(userInfo ->
+                        userInfo.userService(principalOAuth2UserService)
+                    );
                 });
         
         return http.build();
