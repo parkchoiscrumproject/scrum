@@ -18,4 +18,8 @@ public interface ScrumRepository extends JpaRepository<Scrum, Long> {
 
     // 삭제 되지 않고, 진행이 종료되지 않은 유저의 스크럼 개수 판단(0보다 크면 true)
     boolean existsByUserAndDeleteDateIsNullAndEndTimeIsNull(User user);
+
+    // 종료가 되지 않고, 삭제되지 않은 스크럼 검색
+    @Query("SELECT s FROM Scrum s WHERE s.id = :scrumId AND s.deleteDate IS NULL AND s.endTime IS NULL")
+    Optional<Scrum> findNotEndAndNotDeleteScrum(@Param("scrumId")Long scrumId);
 }

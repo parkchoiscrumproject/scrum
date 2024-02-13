@@ -6,6 +6,7 @@ import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import com.parkchoi.scrum.util.s3.ExtensionErrorException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -48,16 +49,18 @@ public class GlobalExceptionHandler {
 
     // 유저 없음
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException e) {
-        log.error("유저 없음");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+
+        return ResponseEntity.status(401).body(ApiResponse.createClientError("인증 정보가 유효하지 않습니다. 다시 로그인해 주세요"));
     }
 
     // 인증 실패
     @ExceptionHandler(AuthFailException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAuthFailException(AuthFailException e) {
-        log.error("인증 실패");
-        return ResponseEntity.status(401).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleAuthFailException(AuthFailException e, HttpServletRequest request) {
+        log.warn("인증 실패 - 요청 경로 : {}, 이유 {}", request.getRequestURI(), e.getMessage());
+        
+        return ResponseEntity.status(401).body(ApiResponse.createClientError("인증 정보가 유효하지 않습니다. 다시 로그인해 주세요"));
     }
 
     // 사진 타입 에러
@@ -69,79 +72,86 @@ public class GlobalExceptionHandler {
 
     // 팀 없음
     @ExceptionHandler(TeamNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleTeamNotFoundException(TeamNotFoundException e) {
-        log.error("팀 없음");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleTeamNotFoundException(TeamNotFoundException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("문제가 발생했습니다. 새로고침 후 다시 시도해주세요."));
     }
 
     // 특정 유저가 팀에 속하지 않음
     @ExceptionHandler(NonParticipantUserException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNonParticipantUserException(NonParticipantUserException e) {
-        log.error("해당 유저가 팀에 속하지 않음");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleNonParticipantUserException(NonParticipantUserException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("문제가 발생했습니다. 새로고침 후 다시 시도해주세요."));
     }
 
     // 팀 생성 실패
     @ExceptionHandler(FailCreateTeamException.class)
-    public ResponseEntity<ApiResponse<Void>> handleFailCreateTeamException(FailCreateTeamException e) {
+    public ResponseEntity<ApiResponse<Void>> handleFailCreateTeamException(FailCreateTeamException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(500).body(ApiResponse.createServerError("서버에 문제가 발생했습니다."));
+    }
+
+    // 스크럼 생성 실패
+    @ExceptionHandler(FailCreateScrumException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFailCreateScrumException(FailCreateScrumException e) {
         log.error("팀 생성 실패");
         return ResponseEntity.status(500).body(ApiResponse.createServerError(e.getMessage()));
     }
 
     // 스크럼 없음
     @ExceptionHandler(ScrumNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleScrumNotFoundException(ScrumNotFoundException e) {
-        log.error("스크럼 없음");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleScrumNotFoundException(ScrumNotFoundException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("문제가 발생했습니다. 새로고침 후 다시 시도해주세요."));
     }
 
     // 멤버가 꽉 찬 스크럼
     @ExceptionHandler(MaxMemberScrumException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMaxMemberScrumException(MaxMemberScrumException e) {
-        log.error("스크럼 최대 멤버 초과");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleMaxMemberScrumException(MaxMemberScrumException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("문제가 발생했습니다. 새로고침 후 다시 시도해주세요."));
     }
 
     // 현재 유저가 스크럼의 리더가 아님
     @ExceptionHandler(NotScrumLeaderException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotScrumLeaderException(NotScrumLeaderException e) {
-        log.error("현재 유저가 스크럼의 리더가 아님");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleNotScrumLeaderException(NotScrumLeaderException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("스크럼의 리더만 삭제 가능합니다."));
     }
 
     // 이미 스크럼이 시작 상태
     @ExceptionHandler(AlreadyScrumStartException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumStartException(AlreadyScrumStartException e) {
-        log.error("이미 스크럼이 시작 상태");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumStartException(AlreadyScrumStartException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("이미 시작된 스크럼 입니다."));
     }
 
     // 이미 스크럼이 종료 상태
     @ExceptionHandler(AlreadyScrumEndException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumEndException(AlreadyScrumEndException e) {
-        log.error("이미 스크럼이 종료 상태");
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumEndException(AlreadyScrumEndException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 
     // 아직 스크럼이 시작하지 않은 상태
     @ExceptionHandler(NotStartScrumException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotStartScrumException(NotStartScrumException e) {
-        log.error("아직 스크럼이 시작하지 않은 상태");
+    public ResponseEntity<ApiResponse<Void>> handleNotStartScrumException(NotStartScrumException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
         return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
     }
 
     // 이미 스크럼에 참여중이면
     @ExceptionHandler(AlreadyScrumEnterException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumEnterException(AlreadyScrumEnterException e) {
-        log.error("이미 스크럼에 참여중");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumEnterException(AlreadyScrumEnterException e, HttpServletRequest request) {
+        log.warn("생성 실패 - 요청 경로 : {}, 이유 {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("이미 참여 중인 스크럼입니다."));
     }
 
     // 이미 스크럼이 삭제됐다면
     @ExceptionHandler(AlreadyScrumRemoveException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumRemoveException(AlreadyScrumRemoveException e) {
-        log.error("이미 삭제된 스크럼");
-        return ResponseEntity.status(404).body(ApiResponse.createClientError(e.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyScrumRemoveException(AlreadyScrumRemoveException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+        return ResponseEntity.status(404).body(ApiResponse.createClientError("문제가 발생했습니다. 새로고침 후 다시 시도해주세요."));
     }
 
     // 현재 유저가 팀의 리더가 아님
