@@ -24,9 +24,12 @@ public class UserLog {
     private User user;
     @CreatedDate
     private LocalDateTime loginTime;
-
+    private String loginIp;
+    private Boolean isLoginSuccess;
     @Builder
-    public UserLog(User user) {
+    public UserLog(User user, String loginIp, Boolean isLoginSuccess) {
         this.user = user;
+        this.loginIp = loginIp;
+        this.isLoginSuccess = isLoginSuccess;
     }
 }

@@ -9,6 +9,7 @@ import com.parkchoi.scrum.domain.user.repository.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -57,26 +58,40 @@ public class UserService {
 
     // 서비스 로그인
     @Transactional
-    public UserLoginInfoResponseDTO getUserInfo(String accessToken) {
+    public UserLoginInfoResponseDTO getUserInfo(String accessToken, HttpServletRequest request) {
         Long userId = jwtUtil.getUserId(accessToken);
 
-        User user = findUser(userId);
+        Optional<User> userOptional = userRepository.findById(userId);
+        if(userOptional.isEmpty()){
+            UserLog build = UserLog.builder()
+                    .user(null)
+                    .loginIp(request.getRemoteAddr())
+                    .isLoginSuccess(false).build();
 
-        // 로그인 상태 true 변경
-        user.isOnlineTrue();
+            userLogRepository.save(build);
 
-        // 유저 로그인 로그 생성
-        UserLog build = UserLog.builder()
-                .user(user).build();
+            throw new UserNotFoundException("DB에서 \" + userId + \"번 유저를 찾지 못했습니다.");
+        }else{
+            User user = userOptional.get();
+            // 로그인 상태 true 변경
+            user.isOnlineTrue();
 
-        userLogRepository.save(build);
+            // 유저 로그인 로그 생성
+            UserLog build = UserLog.builder()
+                    .user(user)
+                    .loginIp(request.getRemoteAddr())
+                    .isLoginSuccess(true).build();
 
-        return UserLoginInfoResponseDTO.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .profileImage(user.getProfileImage())
-                .statusMessage(user.getStatusMessage())
-                .isOnline(user.getIsOnline()).build();
+            userLogRepository.save(build);
+
+            return UserLoginInfoResponseDTO.builder()
+                    .email(user.getEmail())
+                    .nickname(user.getNickname())
+                    .profileImage(user.getProfileImage())
+                    .statusMessage(user.getStatusMessage())
+                    .isOnline(user.getIsOnline()).build();
+        }
+
     }
 
     // 닉네임 중복 검사
@@ -140,7 +155,7 @@ public class UserService {
 
     // 유저 Id로 유저 찾기
     private User findUser(Long userId){
-        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("리소스를 찾을 수 없습니다."));
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("DB에서 \" + userId + \"번 유저를 찾지 못했습니다."));
     }
 
 }
