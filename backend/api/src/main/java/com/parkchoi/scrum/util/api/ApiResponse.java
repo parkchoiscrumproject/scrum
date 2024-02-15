@@ -31,17 +31,17 @@ public class ApiResponse<T> {
     }
 
     // 성공했지만 리턴 데이터가 없는 경우 message 리턴
-    public static <T> ApiResponse<T> createSuccessNoContent(String message){
+    public static ApiResponse<Void> createSuccessNoContent(String message){
         return new ApiResponse<>(SUCCESS_STATUS, null, message);
     }
 
     // 예외 발생으로 API 호출 실패시 반환 (클라이언트 에러)
-    public static ApiResponse<?> createClientError(String message) {
+    public static ApiResponse<Void> createClientError(String message) {
         return new ApiResponse<>(FAIL_STATUS, null, message);
     }
 
     // 예외 발생으로 API 호출 실패시 반환 (서버 에러)
-    public static ApiResponse<?> createServerError(String message) {
+    public static ApiResponse<Void> createServerError(String message) {
         return new ApiResponse<>(ERROR_STATUS, null, message);
     }
 

@@ -4,10 +4,8 @@ import com.parkchoi.scrum.domain.scrum.dto.request.CreateScrumRequestDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
-import com.parkchoi.scrum.domain.scrum.entity.ScrumInfo;
 import com.parkchoi.scrum.domain.scrum.entity.ScrumParticipant;
 import com.parkchoi.scrum.domain.scrum.exception.*;
-import com.parkchoi.scrum.domain.scrum.repository.ScrumInfoRepository;
 import com.parkchoi.scrum.domain.scrum.repository.ScrumParticipantRepository;
 import com.parkchoi.scrum.domain.scrum.repository.ScrumRepository;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
@@ -24,6 +22,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +35,6 @@ public class ScrumService {
 
     private final UserRepository userRepository;
     private final ScrumRepository scrumRepository;
-    private final ScrumInfoRepository scrumInfoRepository;
     private final ScrumParticipantRepository scrumParticipantRepository;
     private final InviteTeamListRepository inviteTeamListRepository;
     private final TeamRepository teamRepository;
@@ -48,10 +46,10 @@ public class ScrumService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+                .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
         try {
             // 스크럼 생성
@@ -60,23 +58,17 @@ public class ScrumService {
                     .maxMember(dto.getMaxMember())
                     .currentMember(1)
                     .team(team)
-                    .user(user).build();
-            scrumRepository.save(scrum);
-
-            // 스크럼 정보 생성
-            ScrumInfo scrumInfo = ScrumInfo.builder()
-                    .scrum(scrum)
+                    .user(user)
                     .subject(dto.getSubject())
-                    .isStart(false).build();
-            scrumInfoRepository.save(scrumInfo);
+                    .build();
+            scrumRepository.save(scrum);
 
             // 스크럼 참여자 정보 생성
             ScrumParticipant scrumParticipant = ScrumParticipant.builder()
                     .scrum(scrum)
                     .user(user).build();
             scrumParticipantRepository.save(scrumParticipant);
-
-        } catch (Exception e) {
+        } catch(Exception e) {
             throw new FailCreateScrumException("스크럼 생성에 실패하였습니다.");
         }
     }
@@ -86,29 +78,26 @@ public class ScrumService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+                .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
-        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
-                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+        inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Optional<List<Scrum>> scrumList = scrumRepository.findByTeamWithFetchJoinUserAndScrumInfoAndDeleteDateIsNull(team);
-
-        List<Scrum> scrums = scrumList.orElse(new ArrayList<>());
+        List<Scrum> scrumList = scrumRepository.findByTeamWithFetchJoinUserAndDeleteDateIsNull(team);
         List<ScrumRoomDTO> scrumRoomDTOList = new ArrayList<>();
 
-        for(int i=0; i<scrums.size(); i++){
-            Scrum s = scrums.get(i);
-            if(s.getScrumInfo().getEndTime() == null){
+        for (Scrum s : scrumList) {
+            if (s.getEndTime() == null) {
                 ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.builder()
                         .scrumId(s.getId())
                         .name(s.getName())
                         .profileImage(s.getUser().getProfileImage())
                         .maxMember(s.getMaxMember())
                         .currentMember(s.getCurrentMember())
-                        .isRunning(s.getScrumInfo().getIsStart())
+                        .isRunning(s.getIsStart())
                         .nickname(s.getUser().getNickname()).build();
 
                 scrumRoomDTOList.add(scrumRoomDTO);
@@ -118,39 +107,29 @@ public class ScrumService {
         return new ScrumRoomListResponseDTO(scrumRoomDTOList);
     }
 
-    @Transactional
+
     // 스크럼 참여
+    @Transactional
     public void enterScrum(String accessToken, Long teamId, Long scrumId){
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+                .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
-        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
-                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+        inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findById(scrumId)
-                .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
+        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+                .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
-        if(scrum.getDeleteDate() != null){
-            throw new NotScrumLeaderException("삭제된 스크럼입니다.");
-        }
-
-        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
-        // 이미 종료된 스크럼이면
-        if(scrumInfo.getEndTime() != null){
-            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
-        }
-
-        Optional<ScrumParticipant> byScrumAndUser = scrumParticipantRepository.findByUserAndScrum(user, scrum);
         // 아직 참여하지 않은 스크럼이면
-        if(byScrumAndUser.isEmpty()){
-            // 멤버가 꽉찼으면ㅅ
+        if(!scrumParticipantRepository.existsScrumParticipantByUserAndScrum(user, scrum)){
+            // 멤버가 꽉찼으면
             if(scrum.getCurrentMember() == scrum.getMaxMember()){
-                throw new MaxMemberScrumException("참여 최대 인원에 도달했습니다.");
+                throw new MaxMemberScrumException("현재 스크럼 인원이 최대입니다. 참여 실패");
             }
             // 참여 생성
             ScrumParticipant scrumParticipant = ScrumParticipant.builder()
@@ -160,7 +139,7 @@ public class ScrumService {
             // 현재 인원 증가
             scrum.plusCurrentMember();
         }else{
-            throw new AlreadyScrumEnterException("이미 스크럼에 참여중입니다.");
+            throw new AlreadyScrumEnterException(userId + "번 유저는 이미 " + scrumId + "번 스크럼에 참여중 입니다.");
         }
         // 나중에 화면에 필요한 정보 리턴
     }
@@ -171,26 +150,26 @@ public class ScrumService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+                .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
-        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
-                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+        inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findById(scrumId)
-                .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
+        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+                .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
         if (!scrum.getUser().getId().equals(userId)) {
-            throw new NotScrumLeaderException("리더만 삭제 가능합니다.");
+            throw new NotScrumLeaderException(userId + "번 유저는 " + scrumId + "번 스크럼의 리더가 아니라 삭제 불가능 합니다.");
         }
 
         if (scrum.getDeleteDate() != null){
-            throw new AlreadyScrumRemoveException("이미 삭제된 스크럼입니다.");
+            throw new AlreadyScrumRemoveException(scrumId + "번 스크럼은 이미 삭제된 스크럼 입니다.");
         }
-        // 삭제 시간 추가
-        scrum.addDeleteDate();
+        // 스크럼 삭제 진행
+        scrum.deleteScrum();
     }
 
     // 스크럼 시작
@@ -199,30 +178,28 @@ public class ScrumService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+                .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
-        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
-                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+        inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findById(scrumId)
-                .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
-
-        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
+        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+                .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
         if (!scrum.getUser().getId().equals(userId)) {
-            throw new NotScrumLeaderException("리더만 시작 가능합니다.");
+            throw new NotScrumLeaderException(userId + "번 유저는 " + scrumId + "번 스크럼의 리더가 아니라 시작 불가능 합니다.");
         }
 
         // 이미 스크럼이 시작했다면
-        if (scrumInfo.getIsStart()){
-            throw new AlreadyScrumStartException("이미 시작된 스크럼입니다.");
+        if (scrum.getIsStart()){
+            throw new AlreadyScrumStartException(scrumId + "번 스크럼은 이미 시작된 스크럼 입니다.");
         }
 
         // 시작 상태 변경과 시간 추가
-        scrumInfo.startScrum();
+        scrum.startScrum();
     }
 
     // 스크럼 종료
@@ -231,40 +208,37 @@ public class ScrumService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
+                .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
-        InviteTeamList inviteTeamList = inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
-                .orElseThrow(() -> new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다."));
+        inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException("팀 초대 리스트에 현재 유저가 존재하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findById(scrumId)
-                .orElseThrow(() -> new ScrumNotFoundException("스크럼이 존재하지 않습니다."));
-
-        ScrumInfo scrumInfo = scrumInfoRepository.findByScrum(scrum);
+        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+                .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
         // 이미 삭제된 스크럼이면
         if (scrum.getDeleteDate() != null){
-            throw new AlreadyScrumRemoveException("이미 삭제된 스크럼입니다.");
+            throw new AlreadyScrumRemoveException(scrumId + "번 스크럼은 이미 삭제된 스크럼 입니다.");
         }
 
         if (!scrum.getUser().getId().equals(userId)) {
-            throw new NotScrumLeaderException("리더만 종료 가능합니다.");
+            throw new NotScrumLeaderException(userId + "번 유저는 " + scrumId + "번 스크럼의 리더가 아니라 종료 불가능 합니다.");
         }
 
         // 아직 스크럼이 시작하지 않았으면
-        if (!scrumInfo.getIsStart()){
-            throw new NotStartScrumException("아직 스크럼을 시작하지 않았습니다.");
+        if (!scrum.getIsStart()){
+            throw new NotStartScrumException(scrumId + "번 스크럼은 아직 시작 하지 않았습니다.");
         }
 
         // 이미 스크럼이 종료 상태라면
-        if (scrumInfo.getEndTime() != null){
-            throw new AlreadyScrumEndException("이미 종료된 스크럼입니다.");
+        if (scrum.getEndTime() != null){
+            throw new AlreadyScrumEndException(scrumId + "번 스크럼은 이미 종료된 스크럼 입니다.");
         }
 
-
-        scrumInfo.endScrum();
+        scrum.endScrum();
     }
 
     // 스크럼 생성 가능 여부 확인
@@ -272,14 +246,9 @@ public class ScrumService {
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
-        Optional<List<Scrum>> scrumList = scrumRepository.findByUserWithFetchJoinScrumInfoAndDeleteDateIsNullAndEndTimeIsNull(user);
-        if(scrumList.isPresent() && !scrumList.get().isEmpty()){
-            return false;
-        }else{
-            return true;
-        }
+        boolean result = scrumRepository.existsByUserAndDeleteDateIsNullAndEndTimeIsNull(user);
+        return !result;
     }
-
 }

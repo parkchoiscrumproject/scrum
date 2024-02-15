@@ -10,5 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface ScrumParticipantRepository extends JpaRepository<ScrumParticipant, Long> {
-    Optional<ScrumParticipant> findByUserAndScrum(User user, Scrum scrum);
+    // 스크럼과 유저를 포함하는 참여리스트 찾기
+    boolean existsScrumParticipantByUserAndScrum(User user, Scrum scrum);
 }

@@ -35,7 +35,7 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
     @PostMapping("team/{team_id}/scrum")
-    public ResponseEntity<ApiResponse<?>> createScrum(
+    public ResponseEntity<ApiResponse<Void>> createScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId,
             @RequestBody @Valid CreateScrumRequestDTO dto
@@ -53,7 +53,7 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
     @GetMapping("team/{team_id}/scrums")
-    public ResponseEntity<ApiResponse<?>> findScrums(
+    public ResponseEntity<ApiResponse<ScrumRoomListResponseDTO>> findScrums(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") @NotNull Long teamId
     ){
@@ -70,7 +70,7 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
     @PostMapping("team/{team_id}/scrum/{scrum_id}/enter")
-    public ResponseEntity<ApiResponse<?>> enterScrum(
+    public ResponseEntity<ApiResponse<Void>> enterScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
@@ -88,7 +88,7 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
     @PatchMapping("team/{team_id}/scrum/{scrum_id}/delete")
-    public ResponseEntity<ApiResponse<?>> removeScrum(
+    public ResponseEntity<ApiResponse<Void>> removeScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
@@ -106,7 +106,7 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
     @PatchMapping("team/{team_id}/scrum/{scrum_id}/start")
-    public ResponseEntity<ApiResponse<?>> startScrum(
+    public ResponseEntity<ApiResponse<Void>> startScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.")Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.")Long scrumId
@@ -124,7 +124,7 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
     @PatchMapping("team/{team_id}/scrum/{scrum_id}/end")
-    public ResponseEntity<ApiResponse<?>> endScrum(
+    public ResponseEntity<ApiResponse<Void>> endScrum(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
@@ -142,7 +142,7 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
     @GetMapping("scrum/creation-availability")
-    public ResponseEntity<ApiResponse<?>> checkScrumAvailability(
+    public ResponseEntity<ApiResponse<Boolean>> checkScrumAvailability(
             @CookieValue(name = "accessToken", required = false) String accessToken){
         boolean result = scrumService.checkScrumAvailability(accessToken);
 

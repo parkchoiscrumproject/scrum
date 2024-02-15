@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -37,11 +38,11 @@ public class UserController{
     @Operation(summary = "유저 로그아웃 API", description = "모든 쿠키를 삭제합니다. isOnline = false")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 없음", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문제가 발생했습니다. 새로고침 후 다시 시도해주세요.", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content)
     })
     @PatchMapping("/user/logout")
-    public ResponseEntity<ApiResponse<?>> logout(@CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response){
+    public ResponseEntity<ApiResponse<Void>> logout(@CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response){
         userService.logout(accessToken, response);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("로그아웃 성공"));
@@ -52,12 +53,13 @@ public class UserController{
     @Parameter(name = "accessToken", description = "엑세스 토큰")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "로그인 성공", content = @Content(schema = @Schema(implementation = UserLoginInfoResponseDTO.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 없음", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문제가 발생했습니다. 새로고침 후 다시 시도해주세요.", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content)
     })
     @PostMapping("/user/login")
-    public ResponseEntity<ApiResponse<?>> login(@CookieValue(name = "accessToken", required = false) String accessToken) {
-        UserLoginInfoResponseDTO userInfo = userService.getUserInfo(accessToken);
+    public ResponseEntity<ApiResponse<UserLoginInfoResponseDTO>> login(@CookieValue(name = "accessToken", required = false) String accessToken
+    , HttpServletRequest request) {
+        UserLoginInfoResponseDTO userInfo = userService.getUserInfo(accessToken, request);
 
         return ResponseEntity.status(201).body(ApiResponse.createSuccess(userInfo, "로그인 성공"));
     }
@@ -68,7 +70,7 @@ public class UserController{
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "닉네임 중복 검사 성공(사용 불가 or 사용 가능)")
     })
     @GetMapping("/user/{nickname}/existence")
-    public ResponseEntity<ApiResponse<?>> checkDuplicationNickname(
+    public ResponseEntity<ApiResponse<Boolean>> checkDuplicationNickname(
             @PathVariable("nickname")
             @Size(max = 10, message = "닉네임은 최대 10자까지 가능합니다.")
             @NotBlank(message = "닉네임을 입력해주세요.")
@@ -78,9 +80,9 @@ public class UserController{
         boolean result = userService.checkDuplicationNickname(nickname);
 
         if (result) {
-            return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "닉네임 중복 검사 성공(사용 불가)"));
+            return ResponseEntity.status(200).body(ApiResponse.createSuccess(true, "닉네임 중복 검사 성공(사용 불가)"));
         } else {
-            return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "닉네임 중복 검사 성공(사용 가능)"));
+            return ResponseEntity.status(200).body(ApiResponse.createSuccess(false, "닉네임 중복 검사 성공(사용 가능)"));
         }
     }
 
@@ -88,17 +90,17 @@ public class UserController{
     @Operation(summary = "유저 닉네임 변경 API", description = "파라미터로 넣은 nickname을 받아서 닉네임 변경 진행합니다. 최대 10글자 가능합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "유저 닉네임 변경 성공", content = @Content(schema = @Schema(implementation = UserNicknameUpdateResponseDTO.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 없음", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문제가 발생했습니다. 새로고침 후 다시 시도해주세요.", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content)
     })
     @PatchMapping("/user/nickname")
-    public ResponseEntity<ApiResponse<?>> updateUserNickname(
+    public ResponseEntity<ApiResponse<UserNicknameUpdateResponseDTO>> updateUserNickname(
             @CookieValue(name = "accessToken", required = false) String accessToken,
-            @RequestParam
             @Size(max = 10, message = "닉네임은 최대 10자까지 가능합니다.")
             @NotBlank(message = "닉네임을 입력해주세요.")
             @Pattern(regexp = "^[가-힣A-Za-z]+$", message = "닉네임은 한글, 영어만 가능합니다.")
             @Schema(description = "닉네임(최대 10글자, 한글 및 영어만 가능)")
+            @RequestParam(name = "nickname")
             String nickname){
         UserNicknameUpdateResponseDTO result = userService.updateUserNickname(accessToken, nickname);
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "유저 닉네임 변경 성공"));
@@ -108,12 +110,12 @@ public class UserController{
     @Operation(summary = "유저 프로필 사진 변경 API", description = "파라미터로 넣은 file을 받아서 닉네임 변경 진행합니다.\n이미지 확장자는 jpg, jpeg, png로 제한했습니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "유저 프로필 사진 변경 성공", content = @Content(schema = @Schema(implementation = UserProfileImageUpdateResponseDTO.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 없음", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문제가 발생했습니다. 새로고침 후 다시 시도해주세요.", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "415", description = "이미지 확장자가 아닙니다.", content = @Content)
     })
     @PatchMapping(value = "/user/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<?>> updateUserProfileImage(
+    public ResponseEntity<ApiResponse<UserProfileImageUpdateResponseDTO>> updateUserProfileImage(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestParam(name = "file") @NotNull
             @Schema(description = "이미지 사진(jpg, jpeg, png)")
@@ -127,10 +129,10 @@ public class UserController{
     @Operation(summary = "유저 정보 조회(이메일 검색) API", description = "이메일을 통해 해당 유저의 정보를 조회합니다.(팀 생성 -> 유저 초대시에 사용)")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "이메일로 유저 조회 성공", content = @Content(schema = @Schema(implementation = UserInviteInfoResponseDTO.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content)
     })
     @GetMapping("/user/{email}/find")
-    public ResponseEntity<ApiResponse<?>> findUserInfoToEmail(
+    public ResponseEntity<ApiResponse<UserInviteInfoResponseDTO>> findUserInfoToEmail(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable("email")
             @NotNull(message = "이메일은 필수입니다.")
@@ -145,11 +147,11 @@ public class UserController{
     @Operation(summary = "유저 상태메시지 변경 API", description = "유저의 상태메시지를 변경합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "유저 상태메시지 변경 성공", content = @Content(schema = @Schema(implementation = UserStatusMessageUpdateResponseDTO.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 없음", content = @Content),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문제가 발생했습니다. 새로고침 후 다시 시도해주세요.", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content)
     })
     @PatchMapping("/user/status-message")
-    public ResponseEntity<ApiResponse<?>> changeStatusMessage(
+    public ResponseEntity<ApiResponse<UserStatusMessageUpdateResponseDTO>> changeStatusMessage(
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestBody @Valid
             StatusMessageRequestDTO dto){
