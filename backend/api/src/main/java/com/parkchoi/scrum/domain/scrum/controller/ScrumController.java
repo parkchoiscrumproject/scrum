@@ -1,7 +1,9 @@
 package com.parkchoi.scrum.domain.scrum.controller;
 
 import com.parkchoi.scrum.domain.scrum.dto.request.CreateScrumRequestDTO;
+import com.parkchoi.scrum.domain.scrum.dto.response.ScrumPageResponseDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
+import com.parkchoi.scrum.domain.scrum.entity.Scrum;
 import com.parkchoi.scrum.domain.scrum.service.ScrumService;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,9 +15,15 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -147,6 +155,33 @@ public class ScrumController {
         boolean result = scrumService.checkScrumAvailability(accessToken);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "true = 스크럼 생성 가능, false = 스크럼 생성 불가"));
+    }
+
+    // 스크럼 검색(제목 or 리더)
+    @Operation(summary = "스크럼 조건 검색 API", description = "입력한 스크럼 정보로 해당 스크럼을 검색합니다. ")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "스크럼 검색 완료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "리소스를 찾을 수 없습니다.", content = @Content),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
+    })
+    @GetMapping("team/{team_id}/scrum")
+    public ResponseEntity<ApiResponse<?>> findScrumList(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
+            @RequestParam(required = false, name = "name") String name,
+            @RequestParam(required = false, name = "leaderName") String leaderName,
+            @RequestParam(defaultValue = "0", name = "page") int page,
+            @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId){
+
+        // 검색 조건이 둘 다 null인 경우
+        if((name == null || name.trim().isEmpty()) && (leaderName == null || leaderName.trim().isEmpty())){
+            return ResponseEntity.status(404).body(ApiResponse.createClientError("검색어를 필수로 입력해야 합니다."));
+        }
+
+        Pageable pageable = PageRequest.of(page, 6);
+        Page<Scrum> scrums = scrumService.searchScrum(accessToken, name, leaderName, teamId, pageable);
+        ScrumPageResponseDTO scrumPageResponseDTO = new ScrumPageResponseDTO(scrums);
+
+        return ResponseEntity.status(200).body(ApiResponse.createSuccess(scrumPageResponseDTO, "검색 스크럼 목록"));
     }
 
 
