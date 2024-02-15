@@ -177,7 +177,7 @@ class ScrumServiceTest {
         Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
         Mockito.when(inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(mockUser, mockTeam)).thenReturn(Optional.of(mockInviteTeamList));
         Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
-        Mockito.when(scrumParticipantRepository.findByUserAndScrum(mockUser, mockScrum)).thenReturn(Optional.ofNullable(mockNullScrumParticipant));
+//        Mockito.when(scrumParticipantRepository.findByUserAndScrum(mockUser, mockScrum)).thenReturn(Optional.ofNullable(mockNullScrumParticipant));
 
         // when
         scrumService.enterScrum(accessToken, teamId, scrumId);
