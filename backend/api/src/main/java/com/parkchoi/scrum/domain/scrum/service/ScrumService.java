@@ -1,8 +1,11 @@
 package com.parkchoi.scrum.domain.scrum.service;
 
 import com.parkchoi.scrum.domain.scrum.dto.request.CreateScrumRequestDTO;
+import com.parkchoi.scrum.domain.scrum.dto.request.ScrumSearchCondition;
+import com.parkchoi.scrum.domain.scrum.dto.response.ScrumPageResponseDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
+import com.parkchoi.scrum.domain.scrum.entity.QScrum;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
 import com.parkchoi.scrum.domain.scrum.entity.ScrumParticipant;
 import com.parkchoi.scrum.domain.scrum.exception.*;
@@ -14,14 +17,18 @@ import com.parkchoi.scrum.domain.team.exception.NonParticipantUserException;
 import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
 import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
+import com.parkchoi.scrum.domain.user.entity.QUser;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -41,6 +48,7 @@ public class ScrumService {
     private final InviteTeamListRepository inviteTeamListRepository;
     private final TeamRepository teamRepository;
     private final JwtUtil jwtUtil;
+    private final JPAQueryFactory queryFactory;
 
     // 스크럼 생성
     @Transactional
@@ -88,7 +96,7 @@ public class ScrumService {
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        List<Scrum> scrumList = scrumRepository.findByTeamWithFetchJoinUserAndDeleteDateIsNull(team);
+        List<Scrum> scrumList = scrumRepository.findActiveScrumsByTeam(team);
         List<ScrumRoomDTO> scrumRoomDTOList = new ArrayList<>();
 
         for (Scrum s : scrumList) {
@@ -124,7 +132,7 @@ public class ScrumService {
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+        Scrum scrum = scrumRepository.findActiveScrumByScrumId(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
         // 아직 참여하지 않은 스크럼이면
@@ -160,7 +168,7 @@ public class ScrumService {
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+        Scrum scrum = scrumRepository.findActiveScrumByScrumId(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
         if (!scrum.getUser().getId().equals(userId)) {
@@ -188,7 +196,7 @@ public class ScrumService {
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+        Scrum scrum = scrumRepository.findActiveScrumByScrumId(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
         if (!scrum.getUser().getId().equals(userId)) {
@@ -218,7 +226,7 @@ public class ScrumService {
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException("팀 초대 리스트에 현재 유저가 존재하지 않습니다."));
 
-        Scrum scrum = scrumRepository.findNotEndAndNotDeleteScrum(scrumId)
+        Scrum scrum = scrumRepository.findActiveScrumByScrumId(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
 
         // 이미 삭제된 스크럼이면
@@ -250,12 +258,12 @@ public class ScrumService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
 
-        boolean result = scrumRepository.existsByUserAndDeleteDateIsNullAndEndTimeIsNull(user);
+        boolean result = scrumRepository.existsActiveScrumByUser(user);
         return !result;
     }
 
     // 페이지네이션 처리
-    public Page<Scrum> searchScrum(String accessToken, String name, String leaderName, Long teamId, Pageable pageable){
+    public ScrumPageResponseDTO searchScrum(String accessToken, ScrumSearchCondition resultsDto, Long teamId, Pageable pageable){
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
@@ -267,14 +275,10 @@ public class ScrumService {
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
                 .orElseThrow(() -> new NonParticipantUserException("팀 초대 리스트에 현재 유저가 존재하지 않습니다."));
 
+        Page<Scrum> scrums = scrumRepository.searchScrumWithPagination(resultsDto, pageable);
 
-        if(name != null){
-            return scrumRepository.findByName(name, pageable);
-        }else{
-            Optional<User> leaderUser = userRepository.findByNickname(leaderName);
-            User leader = null;
-            if(leaderUser.isPresent()) leader = leaderUser.get();
-            return scrumRepository.findByUser(leader, pageable);
-        }
+        ScrumPageResponseDTO scrumPageResponseDTO = new ScrumPageResponseDTO(scrums);
+
+        return scrumPageResponseDTO;
     }
 }

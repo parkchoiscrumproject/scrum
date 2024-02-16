@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.scrum.controller;
 
 import com.parkchoi.scrum.domain.scrum.dto.request.CreateScrumRequestDTO;
+import com.parkchoi.scrum.domain.scrum.dto.request.ScrumSearchCondition;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumPageResponseDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
@@ -164,24 +165,22 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "리소스를 찾을 수 없습니다.", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
-    @GetMapping("team/{team_id}/scrum")
+    @PostMapping("team/{team_id}/scrum/search")
     public ResponseEntity<ApiResponse<?>> findScrumList(
             @CookieValue(name = "accessToken", required = false) String accessToken,
-            @RequestParam(required = false, name = "name") String name,
-            @RequestParam(required = false, name = "leaderName") String leaderName,
             @RequestParam(defaultValue = "0", name = "page") int page,
+            @RequestBody ScrumSearchCondition requestDTO,
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId){
 
         // 검색 조건이 둘 다 null인 경우
-        if((name == null || name.trim().isEmpty()) && (leaderName == null || leaderName.trim().isEmpty())){
+        if((requestDTO.getName() == null || requestDTO.getName().trim().isEmpty()) && (requestDTO.getLeaderName() == null || requestDTO.getLeaderName().trim().isEmpty())){
             return ResponseEntity.status(404).body(ApiResponse.createClientError("검색어를 필수로 입력해야 합니다."));
         }
 
         Pageable pageable = PageRequest.of(page, 6);
-        Page<Scrum> scrums = scrumService.searchScrum(accessToken, name, leaderName, teamId, pageable);
-        ScrumPageResponseDTO scrumPageResponseDTO = new ScrumPageResponseDTO(scrums);
+        ScrumPageResponseDTO responseDTO = scrumService.searchScrum(accessToken, requestDTO, teamId, pageable);
 
-        return ResponseEntity.status(200).body(ApiResponse.createSuccess(scrumPageResponseDTO, "검색 스크럼 목록"));
+        return ResponseEntity.status(200).body(ApiResponse.createSuccess(responseDTO, "검색 스크럼 목록"));
     }
 
 
