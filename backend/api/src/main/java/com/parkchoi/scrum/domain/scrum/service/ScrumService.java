@@ -21,6 +21,8 @@ import com.parkchoi.scrum.util.jwt.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
@@ -250,5 +252,29 @@ public class ScrumService {
 
         boolean result = scrumRepository.existsByUserAndDeleteDateIsNullAndEndTimeIsNull(user);
         return !result;
+    }
+
+    // 페이지네이션 처리
+    public Page<Scrum> searchScrum(String accessToken, String name, String leaderName, Long teamId, Pageable pageable){
+        Long userId = jwtUtil.getUserId(accessToken);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("DB에서 " + userId + "번 유저를 찾지 못했습니다."));
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
+
+        inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
+                .orElseThrow(() -> new NonParticipantUserException("팀 초대 리스트에 현재 유저가 존재하지 않습니다."));
+
+
+        if(name != null){
+            return scrumRepository.findByName(name, pageable);
+        }else{
+            Optional<User> leaderUser = userRepository.findByNickname(leaderName);
+            User leader = null;
+            if(leaderUser.isPresent()) leader = leaderUser.get();
+            return scrumRepository.findByUser(leader, pageable);
+        }
     }
 }
