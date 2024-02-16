@@ -54,7 +54,7 @@ class UserControllerTest {
                 .profileImage("이미지주소")
                 .statusMessage("상태메시지")
                 .nickname("닉네임").build();
-        Mockito.when(userService.getUserInfo(accessToken)).thenReturn(userLoginInfoResponseDTO);
+//        Mockito.when(userService.getUserInfo(accessToken)).thenReturn(userLoginInfoResponseDTO);
 
         // when, then
         ResultActions resultActions = mockMvc.perform(
