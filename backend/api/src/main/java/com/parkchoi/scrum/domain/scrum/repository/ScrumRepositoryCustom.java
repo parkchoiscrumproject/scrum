@@ -14,5 +14,5 @@ public interface ScrumRepositoryCustom {
     Boolean existsActiveScrumByUser(User user);
     List<Scrum> findActiveScrumsByTeam(Team team);
     Optional<Scrum> findActiveScrumByScrumId(Long scrumId);
-    Page<Scrum> searchScrumWithPagination(ScrumSearchCondition condition, Pageable pageable);
+    Page<Scrum> searchScrumWithPagination(String type, String key, Pageable pageable);
 }

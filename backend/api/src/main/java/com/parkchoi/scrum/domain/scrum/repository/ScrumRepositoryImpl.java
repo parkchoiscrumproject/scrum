@@ -1,7 +1,6 @@
 package com.parkchoi.scrum.domain.scrum.repository;
 
 import com.parkchoi.scrum.domain.scrum.dto.request.ScrumSearchCondition;
-import com.parkchoi.scrum.domain.scrum.entity.QScrum;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.user.entity.User;
@@ -59,38 +58,48 @@ public class ScrumRepositoryImpl implements ScrumRepositoryCustom {
 
     // 스크럼 조건 검색 페이지네이션
     @Override
-    public Page<Scrum> searchScrumWithPagination(ScrumSearchCondition condition, Pageable pageable) {
+    public Page<Scrum> searchScrumWithPagination(String type, String key, Pageable pageable) {
+
+        BooleanExpression searchCondition = createSearchCondition(type, key);
 
         List<Scrum> scrums = queryFactory
                 .selectFrom(scrum)
-                .where(nameContains(condition.getName()),
-                        leaderNameContains(condition.getLeaderName()))
+                .where(searchCondition)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         long total = queryFactory
                 .selectFrom(scrum)
-                .where(
-                        nameContains(condition.getName()),
-                        leaderNameContains(condition.getLeaderName())
-                )
+                .where(searchCondition)
                 .fetchCount();
 
         return new PageImpl<>(scrums, pageable, total);
     }
 
-    private BooleanExpression nameContains(String name){
-        if(name == null || name.isEmpty()){
+    // 제목 판단(검색)
+    private BooleanExpression titleContains(String title){
+        if(title == null || title.trim().isEmpty()){
             return null;
         }
-        return scrum.name.containsIgnoreCase(name);
+        return scrum.name.containsIgnoreCase(title);
     }
 
+    // 리더 닉네임 판단(검색)
     private BooleanExpression leaderNameContains(String leaderName){
-        if(leaderName == null || leaderName.isEmpty()){
+        if(leaderName == null || leaderName.trim().isEmpty()){
             return null;
         }
         return scrum.user.nickname.containsIgnoreCase(leaderName);
+    }
+
+    // 검색 조건 쿼리 생성
+    private BooleanExpression createSearchCondition(String type, String key){
+        if("leaderName".equals(type)){
+            return leaderNameContains(key);
+        }else if("title".equals(type)){
+            return titleContains(key);
+        }
+        return null;
     }
 }

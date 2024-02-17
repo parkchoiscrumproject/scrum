@@ -224,7 +224,7 @@ public class ScrumService {
                 .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
-                .orElseThrow(() -> new NonParticipantUserException("팀 초대 리스트에 현재 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
         Scrum scrum = scrumRepository.findActiveScrumByScrumId(scrumId)
                 .orElseThrow(() -> new ScrumNotFoundException("DB에서 "+ scrumId+"번 스크럼을 찾지 못했습니다.(삭제 됐거나 종료 됐거나 스크럼이 없음)"));
@@ -263,7 +263,7 @@ public class ScrumService {
     }
 
     // 페이지네이션 처리
-    public ScrumPageResponseDTO searchScrum(String accessToken, ScrumSearchCondition resultsDto, Long teamId, Pageable pageable){
+    public ScrumPageResponseDTO searchScrum(String accessToken, String type, String key, Long teamId, Pageable pageable){
         Long userId = jwtUtil.getUserId(accessToken);
 
         User user = userRepository.findById(userId)
@@ -273,12 +273,10 @@ public class ScrumService {
                 .orElseThrow(() -> new TeamNotFoundException("DB에서 " + teamId + "번 팀을 찾지 못했습니다."));
 
         inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(user, team)
-                .orElseThrow(() -> new NonParticipantUserException("팀 초대 리스트에 현재 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NonParticipantUserException(teamId + "번 팀 초대 리스트에" + userId+ "번 유저가 존재 하지 않습니다."));
 
-        Page<Scrum> scrums = scrumRepository.searchScrumWithPagination(resultsDto, pageable);
+        Page<Scrum> scrums = scrumRepository.searchScrumWithPagination(type, key, pageable);
 
-        ScrumPageResponseDTO scrumPageResponseDTO = new ScrumPageResponseDTO(scrums);
-
-        return scrumPageResponseDTO;
+        return new ScrumPageResponseDTO(scrums);
     }
 }

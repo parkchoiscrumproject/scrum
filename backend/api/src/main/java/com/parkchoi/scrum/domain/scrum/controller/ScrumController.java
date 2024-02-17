@@ -1,10 +1,8 @@
 package com.parkchoi.scrum.domain.scrum.controller;
 
 import com.parkchoi.scrum.domain.scrum.dto.request.CreateScrumRequestDTO;
-import com.parkchoi.scrum.domain.scrum.dto.request.ScrumSearchCondition;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumPageResponseDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
-import com.parkchoi.scrum.domain.scrum.entity.Scrum;
 import com.parkchoi.scrum.domain.scrum.service.ScrumService;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,13 +11,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -165,20 +163,24 @@ public class ScrumController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "리소스를 찾을 수 없습니다.", content = @Content),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "쿠키가 존재하지 않습니다.", content = @Content)
     })
-    @PostMapping("team/{team_id}/scrum/search")
+    @GetMapping("team/{team_id}/scrum/search")
     public ResponseEntity<ApiResponse<?>> findScrumList(
             @CookieValue(name = "accessToken", required = false) String accessToken,
+            @RequestParam(name = "type")
+            @NotBlank(message = "검색 조건은 필수입니다.")
+            @Size(max = 10, message = "type은 최대 10자까지 가능합니다.") String type,
+            @RequestParam(name = "key")
+            @NotBlank(message = "검색어는 필수입니다.")
+            @Size(max = 10, message = "검색어는 최대 10자까지 가능합니다.") String key,
             @RequestParam(defaultValue = "0", name = "page") int page,
-            @RequestBody ScrumSearchCondition requestDTO,
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId){
 
-        // 검색 조건이 둘 다 null인 경우
-        if((requestDTO.getName() == null || requestDTO.getName().trim().isEmpty()) && (requestDTO.getLeaderName() == null || requestDTO.getLeaderName().trim().isEmpty())){
-            return ResponseEntity.status(404).body(ApiResponse.createClientError("검색어를 필수로 입력해야 합니다."));
+        if(!"leaderName".equals(type) && !"title".equals(type)){
+            return ResponseEntity.status(404).body(ApiResponse.createClientError("검색 조건이 잘못되었습니다."));
         }
 
         Pageable pageable = PageRequest.of(page, 6);
-        ScrumPageResponseDTO responseDTO = scrumService.searchScrum(accessToken, requestDTO, teamId, pageable);
+        ScrumPageResponseDTO responseDTO = scrumService.searchScrum(accessToken, type, key, teamId, pageable);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(responseDTO, "검색 스크럼 목록"));
     }
