@@ -5,8 +5,9 @@ import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
 import com.parkchoi.scrum.domain.scrum.entity.ScrumParticipant;
-import com.parkchoi.scrum.domain.scrum.repository.ScrumParticipantRepository;
-import com.parkchoi.scrum.domain.scrum.repository.ScrumRepository;
+import com.parkchoi.scrum.domain.scrum.repository.scrumparticipant.ScrumParticipantRepository;
+import com.parkchoi.scrum.domain.scrum.repository.scrum.ScrumRepository;
+import com.parkchoi.scrum.domain.scrum.service.impl.ScrumServiceImpl;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
@@ -30,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-class ScrumServiceTest {
+class ScrumServiceImplTest {
 
     @Mock
     private ScrumRepository scrumRepository;
@@ -52,7 +53,7 @@ class ScrumServiceTest {
     private JwtUtil jwtUtil;
 
     @InjectMocks
-    private ScrumService scrumService;
+    private ScrumServiceImpl scrumServiceImpl;
 
     private String accessToken;
     private Long userId;
@@ -100,7 +101,7 @@ class ScrumServiceTest {
                 .subject("주제").build();
 
         // when
-        scrumService.createScrum(accessToken, teamId, createScrumRequestDTO);
+        scrumServiceImpl.createScrum(accessToken, teamId, createScrumRequestDTO);
 
         // then
         // 스크럼 클래스를 잡기 위한 초기 설정
@@ -139,10 +140,9 @@ class ScrumServiceTest {
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
         Mockito.when(inviteTeamListRepository.findByUserAndTeamAndParticipantIsTrue(mockUser, mockTeam)).thenReturn(Optional.of(mockInviteTeamList));
-        Mockito.when(scrumRepository.findByTeamWithFetchJoinUserAndDeleteDateIsNull(mockTeam)).thenReturn(mockScrumList);
 
         // when
-        ScrumRoomListResponseDTO scrums = scrumService.findScrums(accessToken, teamId);
+        ScrumRoomListResponseDTO scrums = scrumServiceImpl.findScrums(accessToken, teamId);
 
         // then
         Assertions.assertFalse(scrums.getScrums().isEmpty());
@@ -180,7 +180,7 @@ class ScrumServiceTest {
 //        Mockito.when(scrumParticipantRepository.findByUserAndScrum(mockUser, mockScrum)).thenReturn(Optional.ofNullable(mockNullScrumParticipant));
 
         // when
-        scrumService.enterScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.enterScrum(accessToken, teamId, scrumId);
 
         // then
         ArgumentCaptor<ScrumParticipant> scrumParticipantArgumentCaptor = ArgumentCaptor.forClass(ScrumParticipant.class);
@@ -216,7 +216,7 @@ class ScrumServiceTest {
         Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
 
         // when
-        scrumService.removeScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.removeScrum(accessToken, teamId, scrumId);
 
         // then
         Assertions.assertEquals(userId, mockScrum.getUser().getId());
@@ -247,7 +247,7 @@ class ScrumServiceTest {
         Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
 
         // when
-        scrumService.startScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.startScrum(accessToken, teamId, scrumId);
 
         // then
         Assertions.assertEquals(userId, mockScrum.getUser().getId());
@@ -283,7 +283,7 @@ class ScrumServiceTest {
         Mockito.when(scrumRepository.findById(scrumId)).thenReturn(Optional.of(mockScrum));
 
         // when
-        scrumService.endScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.endScrum(accessToken, teamId, scrumId);
 
         // then
         Assertions.assertNull(mockScrum.getDeleteDate());

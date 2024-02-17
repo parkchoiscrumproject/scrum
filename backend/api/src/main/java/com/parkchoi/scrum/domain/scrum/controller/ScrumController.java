@@ -3,7 +3,7 @@ package com.parkchoi.scrum.domain.scrum.controller;
 import com.parkchoi.scrum.domain.scrum.dto.request.CreateScrumRequestDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumPageResponseDTO;
 import com.parkchoi.scrum.domain.scrum.dto.response.ScrumRoomListResponseDTO;
-import com.parkchoi.scrum.domain.scrum.service.ScrumService;
+import com.parkchoi.scrum.domain.scrum.service.impl.ScrumServiceImpl;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,8 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -32,7 +30,7 @@ import java.util.List;
 @Validated
 public class ScrumController {
 
-    private final ScrumService scrumService;
+    private final ScrumServiceImpl scrumServiceImpl;
 
     // 스크럼 생성
     @Operation(summary = "스크럼 생성 API", description = "team_id와 스크럼 생성에 필요한 정보들을 받아서 스크럼을 생성합니다.")
@@ -47,7 +45,7 @@ public class ScrumController {
             @PathVariable(name = "team_id") Long teamId,
             @RequestBody @Valid CreateScrumRequestDTO dto
     ){
-        scrumService.createScrum(accessToken, teamId, dto);
+        scrumServiceImpl.createScrum(accessToken, teamId, dto);
 
         return ResponseEntity.status(201).body(ApiResponse.createSuccessNoContent("스크럼 생성 성공"));
     }
@@ -64,7 +62,7 @@ public class ScrumController {
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") @NotNull Long teamId
     ){
-        ScrumRoomListResponseDTO scrums = scrumService.findScrums(accessToken, teamId);
+        ScrumRoomListResponseDTO scrums = scrumServiceImpl.findScrums(accessToken, teamId);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(scrums, "스크럼 조회 성공"));
     }
@@ -82,7 +80,7 @@ public class ScrumController {
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
     ){
-        scrumService.enterScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.enterScrum(accessToken, teamId, scrumId);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼 참여 성공"));
     }
@@ -100,7 +98,7 @@ public class ScrumController {
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
     ){
-        scrumService.removeScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.removeScrum(accessToken, teamId, scrumId);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼 삭제 성공"));
     }
@@ -118,7 +116,7 @@ public class ScrumController {
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.")Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.")Long scrumId
     ){
-        scrumService.startScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.startScrum(accessToken, teamId, scrumId);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼을 시작합니다."));
     }
@@ -136,7 +134,7 @@ public class ScrumController {
             @PathVariable(name = "team_id") @NotNull(message = "팀 아이디는 필수입니다.") Long teamId,
             @PathVariable(name = "scrum_id") @NotNull(message = "스크럼 아이디는 필수입니다.") Long scrumId
     ){
-        scrumService.endScrum(accessToken, teamId, scrumId);
+        scrumServiceImpl.endScrum(accessToken, teamId, scrumId);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("스크럼을 종료합니다."));
     }
@@ -151,7 +149,7 @@ public class ScrumController {
     @GetMapping("scrum/creation-availability")
     public ResponseEntity<ApiResponse<Boolean>> checkScrumAvailability(
             @CookieValue(name = "accessToken", required = false) String accessToken){
-        boolean result = scrumService.checkScrumAvailability(accessToken);
+        boolean result = scrumServiceImpl.checkScrumAvailability(accessToken);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "true = 스크럼 생성 가능, false = 스크럼 생성 불가"));
     }
@@ -180,7 +178,7 @@ public class ScrumController {
         }
 
         Pageable pageable = PageRequest.of(page, 6);
-        ScrumPageResponseDTO responseDTO = scrumService.searchScrum(accessToken, type, key, teamId, pageable);
+        ScrumPageResponseDTO responseDTO = scrumServiceImpl.searchScrum(accessToken, type, key, teamId, pageable);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(responseDTO, "검색 스크럼 목록"));
     }

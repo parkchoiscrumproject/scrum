@@ -1,4 +1,4 @@
-package com.parkchoi.scrum.domain.scrum.repository;
+package com.parkchoi.scrum.domain.scrum.repository.scrum;
 
 import com.parkchoi.scrum.domain.scrum.dto.request.ScrumSearchCondition;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
