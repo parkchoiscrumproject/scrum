@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.scrum.repository;
 
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
+import com.parkchoi.scrum.domain.scrum.repository.scrum.ScrumRepository;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;

@@ -34,7 +34,7 @@ public class teamRepositoryTest {
 
     @BeforeEach
     void setUp(){
-
+        //given
         //유저 객체 생성
         user = User.builder()
                 .email("test@test.com")
@@ -55,18 +55,14 @@ public class teamRepositoryTest {
                 .build();
         teamRepository.save(team);
 
-        entityManager.clear();
 
     }
 
     @Test
     @DisplayName("팀과 userId로 팀 삭제")
     void 팀과_userID로_팀_삭제(){
-        //given
         //when
         teamRepository.deleteByIdAndUserId(team.getId(), user.getId());
-        entityManager.flush(); //변경사항 db에 즉시 반영
-        System.out.println(team.getId()+" "+user.getId());
 
         //then
         Optional<Team> deletedTeam = teamRepository.findById(team.getId());
