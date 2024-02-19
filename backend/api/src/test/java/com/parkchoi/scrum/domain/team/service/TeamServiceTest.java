@@ -3,7 +3,9 @@ package com.parkchoi.scrum.domain.team.service;
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.request.TeamInfoDTO;
 import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
+import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
+import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.UserRepository;
@@ -25,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -38,15 +41,20 @@ public class TeamServiceTest {
     private TeamRepository teamRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private S3UploadService s3UploadService;
+    @Mock
+    private InviteTeamListRepository inviteTeamListRepository;
 
     @InjectMocks
     private TeamService teamService;
-    @InjectMocks
-    private S3UploadService s3UploadService;
+
 
     private String accessToken;
     private Long userId;
     private User mockUser;
+    private User invitedUser2;
+    private User invitedUser3;
     private Long teamId;
     private Team mockTeam;
 
@@ -71,13 +79,40 @@ public class TeamServiceTest {
         //목유저에, 유저 아이디를 담으면 완전한 목 유저 생성
         id.set(mockUser,userId);
 
+        invitedUser2 = User.builder()
+                .email("test@test.com")
+                .profileImage("test")
+                .nickname("test")
+                .isOnline(true)
+                .type("kakao").build();
+        Field id2 = mockUser.getClass().getDeclaredField("id");
+        id2.setAccessible(true);
+        id2.set(invitedUser2,2L);
+
+        invitedUser3 = User.builder()
+                .email("test@test.com")
+                .profileImage("test")
+                .nickname("test")
+                .isOnline(true)
+                .type("kakao").build();
+        Field id3 = mockUser.getClass().getDeclaredField("id");
+        id3.setAccessible(true);
+        id3.set(invitedUser3,3L);
+
+
     }
 
 
     @Test
     void 팀_생성_성공()throws IOException{
+        //given
+        MockMultipartFile file = new MockMultipartFile("file","test.png","image/png","testImageContent".getBytes(StandardCharsets.UTF_8));
+
         Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        Mockito.when(s3UploadService.saveFile(file)).thenReturn("image_url");
+        Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(invitedUser2));
+        Mockito.when(userRepository.findById(3L)).thenReturn(Optional.of(invitedUser3));
 
 
         //팀 정보 생성
@@ -92,18 +127,21 @@ public class TeamServiceTest {
                 .inviteList(List.of(2L,3L))
                 .build();
 
-        MockMultipartFile file = new MockMultipartFile("file","test.png","image/png","testImageContent".getBytes());
-
 
         //when
         CreateTeamResponseDTO result = teamService.createTeam(accessToken, file, createTeamRequestDTO);
 
         //then
-        Mockito.verify(s3UploadService).saveFile(Mockito.any(MultipartFile.class));
         Assertions.assertNotNull(result);
         Assertions.assertEquals("팀이름", result.getName());
         Assertions.assertEquals("image_url", result.getImageUrl());
 
+
+        //Mockito.verify를 사용하여 모의 객체가 제대로 흘러갔는지 확인
+        Mockito.verify(userRepository).findById(userId);
+        Mockito.verify(s3UploadService).saveFile(file);
+        Mockito.verify(teamRepository).save(Mockito.any(Team.class));
+        Mockito.verify(inviteTeamListRepository,Mockito.times(3)).save(Mockito.any(InviteTeamList.class));
 
     }
 
