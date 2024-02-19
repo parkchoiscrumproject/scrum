@@ -55,20 +55,15 @@ public class ScrumServiceImpl implements ScrumService {
 
         try {
             // 스크럼 생성
-            Scrum scrum = Scrum.builder()
-                    .name(dto.getName())
-                    .maxMember(dto.getMaxMember())
-                    .currentMember(1)
-                    .team(team)
-                    .user(user)
-                    .subject(dto.getSubject())
-                    .build();
+            Scrum scrum = dto.toEntity(dto, user, team);
+
             scrumRepository.save(scrum);
 
             // 스크럼 참여자 정보 생성
             ScrumParticipant scrumParticipant = ScrumParticipant.builder()
                     .scrum(scrum)
                     .user(user).build();
+
             scrumParticipantRepository.save(scrumParticipant);
         } catch(Exception e) {
             throw new FailCreateScrumException("스크럼 생성에 실패하였습니다.");
@@ -94,15 +89,7 @@ public class ScrumServiceImpl implements ScrumService {
 
         for (Scrum s : scrumList) {
             if (s.getEndTime() == null) {
-                ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.builder()
-                        .scrumId(s.getId())
-                        .name(s.getName())
-                        .profileImage(s.getUser().getProfileImage())
-                        .maxMember(s.getMaxMember())
-                        .currentMember(s.getCurrentMember())
-                        .isRunning(s.getIsStart())
-                        .nickname(s.getUser().getNickname()).build();
-
+                ScrumRoomDTO scrumRoomDTO = ScrumRoomDTO.fromEntity(s);
                 scrumRoomDTOList.add(scrumRoomDTO);
             }
         }

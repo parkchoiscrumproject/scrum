@@ -1,5 +1,9 @@
 package com.parkchoi.scrum.domain.scrum.dto.request;
 
+import com.parkchoi.scrum.domain.scrum.entity.Scrum;
+import com.parkchoi.scrum.domain.scrum.entity.ScrumParticipant;
+import com.parkchoi.scrum.domain.team.entity.Team;
+import com.parkchoi.scrum.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -30,5 +34,17 @@ public class CreateScrumRequestDTO {
         this.name = name;
         this.maxMember = maxMember;
         this.subject = subject;
+    }
+
+    // 스크럼 생성
+    public Scrum toEntity(CreateScrumRequestDTO dto, User user, Team team){
+        return Scrum.builder()
+                .user(user)
+                .team(team)
+                .currentMember(1)
+                .subject(dto.getSubject())
+                .name(dto.getName())
+                .maxMember(dto.getMaxMember())
+                .build();
     }
 }
