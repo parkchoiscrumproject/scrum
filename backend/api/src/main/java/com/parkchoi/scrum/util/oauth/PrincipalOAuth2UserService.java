@@ -1,7 +1,7 @@
 package com.parkchoi.scrum.util.oauth;
 
 import com.parkchoi.scrum.domain.user.entity.User;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.RandomNickname;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -17,7 +17,7 @@ import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

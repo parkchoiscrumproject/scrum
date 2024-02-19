@@ -5,7 +5,7 @@ import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
 import com.parkchoi.scrum.domain.user.dto.response.*;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.servlet.http.Cookie;

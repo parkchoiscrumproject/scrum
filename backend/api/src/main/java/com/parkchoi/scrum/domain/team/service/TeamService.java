@@ -11,7 +11,7 @@ import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.transaction.Transactional;
@@ -21,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

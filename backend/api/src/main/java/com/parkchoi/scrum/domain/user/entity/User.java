@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.user.entity;
 
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
+import com.parkchoi.scrum.util.api.BaseTimeEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -21,7 +22,7 @@ import java.util.List;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,12 +35,6 @@ public class User {
     @Column(unique = true, nullable = false, length = 20)
     @NotBlank(message = "닉네임은 항상 입력돼야 합니다.")
     private String nickname;
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdDate;
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedDate;
     @Column(length = 100, nullable = true)
     @Size(max = 100, message = "상태메시지는 100자를 초과할 수 없습니다.")
     private String statusMessage;

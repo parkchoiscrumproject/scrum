@@ -1,6 +1,6 @@
 package com.parkchoi.scrum.util;
 
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
