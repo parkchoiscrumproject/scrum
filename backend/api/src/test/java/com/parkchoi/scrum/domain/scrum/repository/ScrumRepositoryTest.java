@@ -5,7 +5,7 @@
 //import com.parkchoi.scrum.domain.team.entity.Team;
 //import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 //import com.parkchoi.scrum.domain.user.entity.User;
-//import com.parkchoi.scrum.domain.user.repository.UserRepository;
+//import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 //import org.junit.jupiter.api.Assertions;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.DisplayName;

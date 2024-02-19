@@ -1,4 +1,4 @@
-package com.parkchoi.scrum.domain.user.repository;
+package com.parkchoi.scrum.domain.user.repository.user;
 
 import com.parkchoi.scrum.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

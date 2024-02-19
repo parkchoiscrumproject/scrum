@@ -8,29 +8,24 @@ import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
-import org.apache.juli.logging.Log;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.commons.logging.LoggerFactory;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 @ExtendWith(MockitoExtension.class)
 public class TeamServiceTest {

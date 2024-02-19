@@ -1,7 +1,7 @@
 package com.parkchoi.scrum.util.oauth;
 
 import com.parkchoi.scrum.domain.user.entity.User;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.ServletException;
@@ -70,14 +70,12 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
         accessTokenCookie.setPath("/");
-//        accessTokenCookie.setMaxAge(1200);
 
         // 리프레시 토큰을 위한 쿠키 생성
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
         refreshTokenCookie.setPath("/");
-//        accessTokenCookie.setMaxAge(60 * 60 * 24 * 14);
 
         // 쿠키에 토큰 저장
         response.addCookie(refreshTokenCookie);
