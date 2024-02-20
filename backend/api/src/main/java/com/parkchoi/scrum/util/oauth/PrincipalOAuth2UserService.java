@@ -3,6 +3,7 @@ package com.parkchoi.scrum.util.oauth;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.RandomNickname;
+import com.parkchoi.scrum.util.encrypt.Encryptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -55,6 +56,7 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
         if(byUser.isEmpty()){
             User userInfo = User.builder()
                     .type("kakao")
+                    .providerId(oAuth2UserInfo.getProviderId())
                     .profileImage("https://ssgcrum.s3.ap-northeast-2.amazonaws.com/profile/default_image.png")
                     .email(email)
                     .nickname(randomNickname.generateUniqueNickname())

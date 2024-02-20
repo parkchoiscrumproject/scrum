@@ -2,7 +2,7 @@ package com.parkchoi.scrum.domain.user.controller;
 
 import com.parkchoi.scrum.domain.user.dto.request.StatusMessageRequestDTO;
 import com.parkchoi.scrum.domain.user.dto.response.*;
-import com.parkchoi.scrum.domain.user.service.UserService;
+import com.parkchoi.scrum.domain.user.service.impl.UserServiceImpl;
 import com.parkchoi.scrum.util.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,7 +32,7 @@ import java.io.IOException;
 @Validated
 public class UserController{
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
 
     // 유저 로그아웃
     @Operation(summary = "유저 로그아웃 API", description = "모든 쿠키를 삭제합니다. isOnline = false")
@@ -43,7 +43,7 @@ public class UserController{
     })
     @PatchMapping("/user/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response){
-        userService.logout(accessToken, response);
+        userServiceImpl.logout(accessToken, response);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("로그아웃 성공"));
     }
@@ -59,7 +59,7 @@ public class UserController{
     @PostMapping("/user/login")
     public ResponseEntity<ApiResponse<UserLoginInfoResponseDTO>> login(@CookieValue(name = "accessToken", required = false) String accessToken
     , HttpServletRequest request) {
-        UserLoginInfoResponseDTO userInfo = userService.getUserInfo(accessToken, request);
+        UserLoginInfoResponseDTO userInfo = userServiceImpl.login(accessToken, request);
 
         return ResponseEntity.status(201).body(ApiResponse.createSuccess(userInfo, "로그인 성공"));
     }
@@ -71,13 +71,14 @@ public class UserController{
     })
     @GetMapping("/user/{nickname}/existence")
     public ResponseEntity<ApiResponse<Boolean>> checkDuplicationNickname(
+            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable("nickname")
             @Size(max = 10, message = "닉네임은 최대 10자까지 가능합니다.")
             @NotBlank(message = "닉네임을 입력해주세요.")
             @Pattern(regexp = "^[가-힣A-Za-z]+$", message = "닉네임은 한글, 영어만 가능합니다.")
             @Schema(description = "닉네임(최대 10글자, 한글 및 영어만 가능)")
             String nickname) {
-        boolean result = userService.checkDuplicationNickname(nickname);
+        boolean result = userServiceImpl.checkDuplicationNickname(nickname);
 
         if (result) {
             return ResponseEntity.status(200).body(ApiResponse.createSuccess(true, "닉네임 중복 검사 성공(사용 불가)"));
@@ -102,7 +103,7 @@ public class UserController{
             @Schema(description = "닉네임(최대 10글자, 한글 및 영어만 가능)")
             @RequestParam(name = "nickname")
             String nickname){
-        UserNicknameUpdateResponseDTO result = userService.updateUserNickname(accessToken, nickname);
+        UserNicknameUpdateResponseDTO result = userServiceImpl.updateUserNickname(accessToken, nickname);
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "유저 닉네임 변경 성공"));
     }
 
@@ -120,7 +121,7 @@ public class UserController{
             @RequestParam(name = "file") @NotNull
             @Schema(description = "이미지 사진(jpg, jpeg, png)")
             MultipartFile file) throws IOException {
-        UserProfileImageUpdateResponseDTO result = userService.updateUserProfileImage(accessToken, file);
+        UserProfileImageUpdateResponseDTO result = userServiceImpl.updateUserProfileImage(accessToken, file);
 
         return ResponseEntity.status(201).body(ApiResponse.createSuccess(result, "유저 프로필 사진 변경 성공"));
     }
@@ -138,7 +139,7 @@ public class UserController{
             @NotNull(message = "이메일은 필수입니다.")
             @Email(message = "이메일 형식이 아닙니다.")
             @Schema(description = "이메일") String email) {
-        UserInviteInfoResponseDTO userInfoToEmail = userService.findUserInfoToEmail(email);
+        UserInviteInfoResponseDTO userInfoToEmail = userServiceImpl.findUserInfoToEmail(email);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(userInfoToEmail, "이메일로 유저 조회 성공"));
     }
@@ -155,7 +156,7 @@ public class UserController{
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestBody @Valid
             StatusMessageRequestDTO dto){
-        UserStatusMessageUpdateResponseDTO responseDTO = userService.updateUserStatusMessage(accessToken, dto.getMessage());
+        UserStatusMessageUpdateResponseDTO responseDTO = userServiceImpl.updateUserStatusMessage(accessToken, dto.getMessage());
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(responseDTO,"유저 상태메시지 변경 성공"));
     }

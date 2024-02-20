@@ -28,6 +28,8 @@ public class User extends BaseTimeEntity {
     private Long id;
     @Column(nullable = false)
     private String type;
+    @Column(nullable = false)
+    private String providerId;
     @Column(unique = true, nullable = false)
     @Email(message = "이메일 형식이 아닙니다.")
     @NotBlank(message = "이메일은 항상 입력돼야 합니다.")
@@ -46,12 +48,13 @@ public class User extends BaseTimeEntity {
     private Boolean isOnline = false;
 
     @Builder
-    public User(String type, String email, String nickname, String profileImage, Boolean isOnline) {
+    public User(String type, String email, String nickname, String profileImage, Boolean isOnline, String providerId) {
         this.type = type;
         this.email = email;
         this.nickname = nickname;
         this.profileImage = profileImage;
         this.isOnline = isOnline;
+        this.providerId = providerId;
     }
 
     // 온라인 상태 변경
