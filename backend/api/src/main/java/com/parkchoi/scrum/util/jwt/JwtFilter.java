@@ -1,6 +1,6 @@
 package com.parkchoi.scrum.util.jwt;
 
-import com.parkchoi.scrum.domain.user.service.UserService;
+import com.parkchoi.scrum.domain.user.service.impl.UserServiceImpl;
 import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,7 +27,7 @@ import java.util.List;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     @Value("${jwt.secretkey}")
     private String SECRET_KEY;
     @Value("#{${jwt.access-validity}}")

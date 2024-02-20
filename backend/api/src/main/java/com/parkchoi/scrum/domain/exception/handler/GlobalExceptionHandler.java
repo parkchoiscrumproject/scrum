@@ -1,10 +1,14 @@
-package com.parkchoi.scrum.domain.exception.controller;
+package com.parkchoi.scrum.domain.exception.handler;
 
+import com.parkchoi.scrum.domain.exception.exception.UserException;
 import com.parkchoi.scrum.domain.scrum.exception.*;
 import com.parkchoi.scrum.domain.team.exception.*;
 import com.parkchoi.scrum.domain.user.exception.AuthFailException;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.util.api.ApiResponse;
+import com.parkchoi.scrum.util.encrypt.exception.CryptoException;
+import com.parkchoi.scrum.util.encrypt.exception.DecryptionException;
+import com.parkchoi.scrum.util.encrypt.exception.EncryptionException;
 import com.parkchoi.scrum.util.s3.ExtensionErrorException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -47,12 +51,36 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(ApiResponse.createClientError(errorMessage));
     }
 
-    // 유저 없음
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException e, HttpServletRequest request) {
+    // Crypto 에러 발생
+    @ExceptionHandler(CryptoException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCryptoException(CryptoException e, HttpServletRequest request) {
         log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
 
-        return ResponseEntity.status(401).body(ApiResponse.createClientError("인증 정보가 유효하지 않습니다. 다시 로그인해 주세요"));
+        return ResponseEntity.status(500).body(ApiResponse.createServerError("Crypto 에러 발생"));
+    }
+
+    // Encryptor 에러 발생
+    @ExceptionHandler(EncryptionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEncryptionException(EncryptionException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+
+        return ResponseEntity.status(500).body(ApiResponse.createServerError("EnCryption 에러 발생"));
+    }
+
+    // Decryptor 에러 발생
+    @ExceptionHandler(DecryptionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDecryptionException(DecryptionException e, HttpServletRequest request) {
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
+
+        return ResponseEntity.status(500).body(ApiResponse.createServerError("DeCryption 에러 발생"));
+    }
+
+    // 유저 예외처리
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserException(UserException e ,HttpServletRequest request){
+        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getException().getMessage());
+
+        return ResponseEntity.status(e.getException().getStatus()).body(ApiResponse.createClientError("인증 정보가 유효하지 않습니다. 다시 로그인해 주세요"));
     }
 
     // 인증 실패

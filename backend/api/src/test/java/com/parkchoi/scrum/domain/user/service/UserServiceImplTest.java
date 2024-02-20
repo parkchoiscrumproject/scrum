@@ -4,6 +4,7 @@ import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
 import com.parkchoi.scrum.domain.user.dto.response.UserInviteInfoResponseDTO;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
+import com.parkchoi.scrum.domain.user.service.impl.UserServiceImpl;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
@@ -39,7 +40,7 @@ class UserServiceTest {
     private JwtUtil jwtUtil;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     @Test
     void 로그아웃_성공() {
@@ -57,7 +58,7 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         
         // when
-        userService.logout(accessToken, response);
+        userServiceImpl.logout(accessToken, response);
 
         // then
         Assertions.assertEquals(false, mockUser.getIsOnline());
@@ -99,7 +100,7 @@ class UserServiceTest {
         Mockito.when(userRepository.existsByNickname(nickname)).thenReturn(false);
 
         // when
-        boolean result = userService.checkDuplicationNickname(nickname);
+        boolean result = userServiceImpl.checkDuplicationNickname(nickname);
 
         // then
         Assertions.assertFalse(result);
@@ -112,7 +113,7 @@ class UserServiceTest {
         Mockito.when(userRepository.existsByNickname(nickname)).thenReturn(true);
 
         // when
-        boolean result = userService.checkDuplicationNickname(nickname);
+        boolean result = userServiceImpl.checkDuplicationNickname(nickname);
 
         // then
         Assertions.assertTrue(result);
@@ -125,7 +126,7 @@ class UserServiceTest {
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         // when
-        UserInviteInfoResponseDTO userInfoToEmail = userService.findUserInfoToEmail(email);
+        UserInviteInfoResponseDTO userInfoToEmail = userServiceImpl.findUserInfoToEmail(email);
 
         // then
         Assertions.assertNull(userInfoToEmail);
@@ -144,7 +145,7 @@ class UserServiceTest {
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
         // when
-        UserInviteInfoResponseDTO userInfoToEmail = userService.findUserInfoToEmail(email);
+        UserInviteInfoResponseDTO userInfoToEmail = userServiceImpl.findUserInfoToEmail(email);
 
         // then
         // dto가 널이 아니고, 유저 정보가 같은지 확인
@@ -170,7 +171,7 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
 
         // when
-        userService.updateUserNickname(accessToken, nickname);
+        userServiceImpl.updateUserNickname(accessToken, nickname);
 
         // then
         Assertions.assertEquals(nickname, mockUser.getNickname());
@@ -193,7 +194,7 @@ class UserServiceTest {
         Mockito.when(s3UploadService.saveFile(file)).thenReturn("qwer");
 
         // when
-        userService.updateUserProfileImage(accessToken, file);
+        userServiceImpl.updateUserProfileImage(accessToken, file);
 
         // then
         Assertions.assertNotEquals("test", mockUser.getProfileImage());
@@ -218,7 +219,7 @@ class UserServiceTest {
         
         // when && then
         Assertions.assertThrows(IOException.class,()->{
-            userService.updateUserProfileImage(accessToken, file);
+            userServiceImpl.updateUserProfileImage(accessToken, file);
         });
     }
 
@@ -238,7 +239,7 @@ class UserServiceTest {
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
 
         // when
-        userService.updateUserStatusMessage(accessToken, statusMessage);
+        userServiceImpl.updateUserStatusMessage(accessToken, statusMessage);
 
         // then
         Assertions.assertEquals(statusMessage, mockUser.getStatusMessage());
