@@ -31,11 +31,6 @@ public class UserStatusMessageLog {
         this.previousStatusMessage = previousStatusMessage;
     }
 
-    public static UserStatusMessageLog fromEntity(User user){
-        return UserStatusMessageLog.builder()
-                .user(user)
-                .previousStatusMessage(user.getStatusMessage()).build();
-    }
 }
 
 

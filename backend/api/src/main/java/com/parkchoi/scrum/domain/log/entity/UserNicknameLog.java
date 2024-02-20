@@ -32,9 +32,4 @@ public class UserNicknameLog {
         this.previousNickname = previousNickname;
     }
 
-    public static UserNicknameLog fromEntity(User user) {
-        return UserNicknameLog.builder()
-                .user(user)
-                .previousNickname(user.getNickname()).build();
-    }
 }

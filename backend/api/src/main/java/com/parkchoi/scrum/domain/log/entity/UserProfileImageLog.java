@@ -30,10 +30,4 @@ public class UserProfileImageLog {
         this.user = user;
         this.previousProfileImage = previousProfileImage;
     }
-
-    public static UserProfileImageLog fromEntity(User user) {
-        return UserProfileImageLog.builder()
-                .user(user)
-                .previousProfileImage(user.getProfileImage()).build();
-    }
 }

@@ -83,14 +83,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(e.getException().getStatus()).body(ApiResponse.createClientError("인증 정보가 유효하지 않습니다. 다시 로그인해 주세요"));
     }
 
-//    // 유저 없음
-//    @ExceptionHandler(UserNotFoundException.class)
-//    public ResponseEntity<ApiResponse<Void>> handleUserNotFoundException(UserNotFoundException e, HttpServletRequest request) {
-//        log.warn("요청 실패 - 요청 경로 : {}, 이유 : {}", request.getRequestURI(), e.getMessage());
-//
-//        return ResponseEntity.status(401).body(ApiResponse.createClientError("인증 정보가 유효하지 않습니다. 다시 로그인해 주세요"));
-//    }
-
     // 인증 실패
     @ExceptionHandler(AuthFailException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthFailException(AuthFailException e, HttpServletRequest request) {

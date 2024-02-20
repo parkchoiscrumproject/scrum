@@ -129,11 +129,12 @@ public class UserServiceImpl implements UserService {
 
         User user = findUser(userId);
 
-        UserNicknameLog userNicknameLog = UserNicknameLog.fromEntity(user);
+        UserNicknameLog userNicknameLog = UserNicknameLog.builder()
+                .user(user)
+                .previousNickname(user.getNickname()).build();
 
         user.updateNickname(nickname);
-
-
+        
         userNicknameLogRepository.save(userNicknameLog);
 
         return new UserNicknameUpdateResponseDTO(nickname);
@@ -149,9 +150,12 @@ public class UserServiceImpl implements UserService {
 
         String url = s3UploadService.saveFile(file);
 
-        UserProfileImageLog userProfileImageLog = UserProfileImageLog.fromEntity(user);
+        UserProfileImageLog userProfileImageLog = UserProfileImageLog.builder()
+                .user(user)
+                .previousProfileImage(user.getProfileImage()).build();
 
         user.updateProfileImage(url);
+
         userProfileImageLogRepository.save(userProfileImageLog);
 
         return new UserProfileImageUpdateResponseDTO(url);
@@ -165,7 +169,9 @@ public class UserServiceImpl implements UserService {
 
         User user = findUser(userId);
 
-        UserStatusMessageLog userStatusMessageLog = userStatusMessageLogRepository.save(UserStatusMessageLog.fromEntity(user));
+        UserStatusMessageLog userStatusMessageLog = UserStatusMessageLog.builder()
+                .user(user)
+                .previousStatusMessage(user.getStatusMessage()).build();
 
         user.updateStatusMessage(statusMessage);
 
