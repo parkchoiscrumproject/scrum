@@ -2,11 +2,11 @@ package com.parkchoi.scrum.domain.user.service.impl;
 
 import com.parkchoi.scrum.domain.exception.exception.UserException;
 import com.parkchoi.scrum.domain.exception.info.UserExceptionInfo;
-import com.parkchoi.scrum.domain.log.entity.UserLog;
+import com.parkchoi.scrum.domain.log.entity.UserLoginLog;
 import com.parkchoi.scrum.domain.log.entity.UserNicknameLog;
 import com.parkchoi.scrum.domain.log.entity.UserProfileImageLog;
 import com.parkchoi.scrum.domain.log.entity.UserStatusMessageLog;
-import com.parkchoi.scrum.domain.log.repository.UserLogRepository;
+import com.parkchoi.scrum.domain.log.repository.UserLoginLogRepository;
 import com.parkchoi.scrum.domain.log.repository.UserNicknameLogRepository;
 import com.parkchoi.scrum.domain.log.repository.UserProfileImageLogRepository;
 import com.parkchoi.scrum.domain.log.repository.UserStatusMessageLogRepository;
@@ -14,15 +14,16 @@ import com.parkchoi.scrum.domain.user.dto.response.*;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.domain.user.service.UserService;
+import com.parkchoi.scrum.util.SecurityContext;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -34,21 +35,19 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final UserLogRepository userLogRepository;
+    private final UserLoginLogRepository userLoginLogRepository;
     private final UserNicknameLogRepository userNicknameLogRepository;
     private final UserProfileImageLogRepository userProfileImageLogRepository;
     private final UserStatusMessageLogRepository userStatusMessageLogRepository;
     private final S3UploadService s3UploadService;
-    private final JwtUtil jwtUtil;
+    private final SecurityContext securityContext;
 
 
     // 서비스 로그아웃
     @Override
     @Transactional
-    public void logout(String accessToken, HttpServletResponse response) {
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = findUser(userId);
+    public void logout(HttpServletResponse response) {
+        User user = securityContext.getUser();
 
         user.isOnlineFalse();
 
@@ -71,35 +70,20 @@ public class UserServiceImpl implements UserService {
     // 서비스 로그인
     @Override
     @Transactional
-    public UserLoginInfoResponseDTO login(String accessToken, HttpServletRequest request) {
-        Long userId = jwtUtil.getUserId(accessToken);
+    public UserLoginInfoResponseDTO login(HttpServletRequest request) {
+        User user = securityContext.getUser();
+        // 로그인 상태 true 변경
+        user.isOnlineTrue();
 
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            UserLog build = UserLog.builder()
-                    .user(null)
-                    .loginIp(request.getRemoteAddr())
-                    .isLoginSuccess(false).build();
+        // 유저 로그인 로그 생성
+        UserLoginLog build = UserLoginLog.builder()
+                .user(user)
+                .loginIp(request.getRemoteAddr())
+                .isLoginSuccess(true).build();
 
-            userLogRepository.save(build);
+        userLoginLogRepository.save(build);
 
-            throw new UserException(UserExceptionInfo.NOT_FOUNT_USER, "DB에서 \" + userId + \"번 유저를 찾지 못했습니다.");
-        } else {
-            User user = userOptional.get();
-            // 로그인 상태 true 변경
-            user.isOnlineTrue();
-
-            // 유저 로그인 로그 생성
-            UserLog build = UserLog.builder()
-                    .user(user)
-                    .loginIp(request.getRemoteAddr())
-                    .isLoginSuccess(true).build();
-
-            userLogRepository.save(build);
-
-            return UserLoginInfoResponseDTO.fromEntity(user);
-        }
-
+        return UserLoginInfoResponseDTO.fromEntity(user);
     }
 
     // 닉네임 중복 검사
@@ -124,17 +108,15 @@ public class UserServiceImpl implements UserService {
     // 유저 닉네임 변경
     @Override
     @Transactional
-    public UserNicknameUpdateResponseDTO updateUserNickname(String accessToken, String nickname) {
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = findUser(userId);
+    public UserNicknameUpdateResponseDTO updateUserNickname(String nickname) {
+        User user = securityContext.getUser();
 
         UserNicknameLog userNicknameLog = UserNicknameLog.builder()
                 .user(user)
                 .previousNickname(user.getNickname()).build();
 
         user.updateNickname(nickname);
-        
+
         userNicknameLogRepository.save(userNicknameLog);
 
         return new UserNicknameUpdateResponseDTO(nickname);
@@ -143,16 +125,15 @@ public class UserServiceImpl implements UserService {
     // 프로필 이미지 변경
     @Override
     @Transactional
-    public UserProfileImageUpdateResponseDTO updateUserProfileImage(String accessToken, MultipartFile file) throws IOException {
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = findUser(userId);
+    public UserProfileImageUpdateResponseDTO updateUserProfileImage(MultipartFile file) throws IOException {
+        User user = securityContext.getUser();
 
         String url = s3UploadService.saveFile(file);
 
         UserProfileImageLog userProfileImageLog = UserProfileImageLog.builder()
                 .user(user)
                 .previousProfileImage(user.getProfileImage()).build();
+
 
         user.updateProfileImage(url);
 
@@ -164,10 +145,8 @@ public class UserServiceImpl implements UserService {
     // 상태메시지 변경
     @Override
     @Transactional
-    public UserStatusMessageUpdateResponseDTO updateUserStatusMessage(String accessToken, String statusMessage) {
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = findUser(userId);
+    public UserStatusMessageUpdateResponseDTO updateUserStatusMessage(String statusMessage) {
+        User user = securityContext.getUser();
 
         UserStatusMessageLog userStatusMessageLog = UserStatusMessageLog.builder()
                 .user(user)
@@ -179,12 +158,5 @@ public class UserServiceImpl implements UserService {
 
         return new UserStatusMessageUpdateResponseDTO(statusMessage);
     }
-
-    // 유저 Id로 유저 찾기
-    private User findUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() ->
-                new UserException(UserExceptionInfo.NOT_FOUNT_USER, "DB에서 \" + userId + \"번 유저를 찾지 못했습니다."));
-    }
-
 }
 

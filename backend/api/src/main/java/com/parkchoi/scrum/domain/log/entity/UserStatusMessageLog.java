@@ -23,6 +23,7 @@ public class UserStatusMessageLog {
     private User user;
     @CreatedDate
     private LocalDateTime changeDate;
+    @Column(nullable = true)
     private String previousStatusMessage;
 
     @Builder
