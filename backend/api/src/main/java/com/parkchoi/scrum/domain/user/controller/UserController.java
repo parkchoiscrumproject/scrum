@@ -43,7 +43,7 @@ public class UserController{
     })
     @PatchMapping("/user/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response){
-        userServiceImpl.logout(accessToken, response);
+        userServiceImpl.logout(response);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("로그아웃 성공"));
     }
@@ -57,9 +57,8 @@ public class UserController{
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content)
     })
     @PostMapping("/user/login")
-    public ResponseEntity<ApiResponse<UserLoginInfoResponseDTO>> login(@CookieValue(name = "accessToken", required = false) String accessToken
-    , HttpServletRequest request) {
-        UserLoginInfoResponseDTO userInfo = userServiceImpl.login(accessToken, request);
+    public ResponseEntity<ApiResponse<UserLoginInfoResponseDTO>> login(HttpServletRequest request) {
+        UserLoginInfoResponseDTO userInfo = userServiceImpl.login(request);
 
         return ResponseEntity.status(201).body(ApiResponse.createSuccess(userInfo, "로그인 성공"));
     }
@@ -103,7 +102,7 @@ public class UserController{
             @Schema(description = "닉네임(최대 10글자, 한글 및 영어만 가능)")
             @RequestParam(name = "nickname")
             String nickname){
-        UserNicknameUpdateResponseDTO result = userServiceImpl.updateUserNickname(accessToken, nickname);
+        UserNicknameUpdateResponseDTO result = userServiceImpl.updateUserNickname(nickname);
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(result, "유저 닉네임 변경 성공"));
     }
 
@@ -121,7 +120,7 @@ public class UserController{
             @RequestParam(name = "file") @NotNull
             @Schema(description = "이미지 사진(jpg, jpeg, png)")
             MultipartFile file) throws IOException {
-        UserProfileImageUpdateResponseDTO result = userServiceImpl.updateUserProfileImage(accessToken, file);
+        UserProfileImageUpdateResponseDTO result = userServiceImpl.updateUserProfileImage(file);
 
         return ResponseEntity.status(201).body(ApiResponse.createSuccess(result, "유저 프로필 사진 변경 성공"));
     }
@@ -156,7 +155,7 @@ public class UserController{
             @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestBody @Valid
             StatusMessageRequestDTO dto){
-        UserStatusMessageUpdateResponseDTO responseDTO = userServiceImpl.updateUserStatusMessage(accessToken, dto.getMessage());
+        UserStatusMessageUpdateResponseDTO responseDTO = userServiceImpl.updateUserStatusMessage(dto.getMessage());
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(responseDTO,"유저 상태메시지 변경 성공"));
     }

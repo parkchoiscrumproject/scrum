@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
-public class UserLog {
+public class UserLoginLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class UserLog {
     private String loginIp;
     private Boolean isLoginSuccess;
     @Builder
-    public UserLog(User user, String loginIp, Boolean isLoginSuccess) {
+    public UserLoginLog(User user, String loginIp, Boolean isLoginSuccess) {
         this.user = user;
         this.loginIp = loginIp;
         this.isLoginSuccess = isLoginSuccess;

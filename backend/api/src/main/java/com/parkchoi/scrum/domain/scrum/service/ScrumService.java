@@ -7,20 +7,20 @@ import org.springframework.data.domain.Pageable;
 
 public interface ScrumService {
     // 스크럼 생성
-    void createScrum(String accessToken, Long teamId, CreateScrumRequestDTO dto);
+    void createScrum(Long teamId, CreateScrumRequestDTO dto);
     // 스크럼 조회
-    ScrumRoomListResponseDTO findScrums(String accessToken, Long teamId);
+    ScrumRoomListResponseDTO findScrums(Long teamId);
     // 스크럼 참여
-    void enterScrum(String accessToken, Long teamId, Long scrumId);
+    void enterScrum(Long teamId, Long scrumId);
     // 스크럼 삭제
-    void removeScrum(String accessToken, Long teamId, Long scrumId);
+    void removeScrum(Long teamId, Long scrumId);
     // 스크럼 시작
-    void startScrum(String accessToken, Long teamId, Long scrumId);
+    void startScrum(Long teamId, Long scrumId);
     // 스크럼 종료
-    void endScrum(String accessToken, Long teamId, Long scrumId);
+    void endScrum(Long teamId, Long scrumId);
     // 스크럼 생성 가능 여부 확인
-    boolean checkScrumAvailability(String accessToken);
+    boolean checkScrumAvailability();
     // 스크럼 검색
-    ScrumPageResponseDTO searchScrum(String accessToken, String type, String key, Long teamId, Pageable pageable);
+    ScrumPageResponseDTO searchScrum(String type, String key, Long teamId, Pageable pageable);
 
 }

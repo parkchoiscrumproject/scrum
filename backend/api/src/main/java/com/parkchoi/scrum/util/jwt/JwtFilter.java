@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.util.jwt;
 
 import com.parkchoi.scrum.domain.user.service.impl.UserServiceImpl;
+import com.parkchoi.scrum.util.SecurityContext;
 import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,6 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Value("#{${jwt.refresh-validity}}")
     private Long refreshTokenTime;
     private final JwtUtil jwtUtil;
+    private final SecurityContext securityContext;
 
 
     @Override // 이 주소로 오는 건 토큰 없어도 됨.

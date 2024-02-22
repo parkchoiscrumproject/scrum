@@ -9,6 +9,7 @@ import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
+import com.parkchoi.scrum.util.SecurityContext;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import org.junit.jupiter.api.Assertions;
@@ -40,12 +41,13 @@ public class TeamServiceTest {
     private S3UploadService s3UploadService;
     @Mock
     private InviteTeamListRepository inviteTeamListRepository;
+    @Mock
+    private SecurityContext securityContext;
 
     @InjectMocks
     private TeamService teamService;
 
 
-    private String accessToken;
     private Long userId;
     private User mockUser;
     private User invitedUser2;
@@ -56,7 +58,6 @@ public class TeamServiceTest {
     @BeforeEach
     void ser_up() throws NoSuchFieldException, IllegalAccessException {
         //given
-        accessToken = "test_access_token";
         userId = 1L;
 
         //user생성
@@ -93,8 +94,6 @@ public class TeamServiceTest {
         Field id3 = mockUser.getClass().getDeclaredField("id");
         id3.setAccessible(true);
         id3.set(invitedUser3,3L);
-
-
     }
 
 
@@ -103,8 +102,8 @@ public class TeamServiceTest {
         //given
         MockMultipartFile file = new MockMultipartFile("file","test.png","image/png","testImageContent".getBytes(StandardCharsets.UTF_8));
 
-        Mockito.when(jwtUtil.getUserId(accessToken)).thenReturn(userId);
-        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        Mockito.when(securityContext.getUser()).thenReturn(mockUser);
+
         Mockito.when(s3UploadService.saveFile(file)).thenReturn("image_url");
         Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(invitedUser2));
         Mockito.when(userRepository.findById(3L)).thenReturn(Optional.of(invitedUser3));
@@ -124,7 +123,7 @@ public class TeamServiceTest {
 
 
         //when
-        CreateTeamResponseDTO result = teamService.createTeam(accessToken, file, createTeamRequestDTO);
+        CreateTeamResponseDTO result = teamService.createTeam(file, createTeamRequestDTO);
 
         //then
         Assertions.assertNotNull(result);
@@ -133,7 +132,6 @@ public class TeamServiceTest {
 
 
         //Mockito.verify를 사용하여 모의 객체가 제대로 흘러갔는지 확인
-        Mockito.verify(userRepository).findById(userId);
         Mockito.verify(s3UploadService).saveFile(file);
         Mockito.verify(teamRepository).save(Mockito.any(Team.class));
         Mockito.verify(inviteTeamListRepository,Mockito.times(3)).save(Mockito.any(InviteTeamList.class));
