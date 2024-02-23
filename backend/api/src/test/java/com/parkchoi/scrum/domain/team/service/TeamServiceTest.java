@@ -5,13 +5,18 @@ import com.parkchoi.scrum.domain.team.dto.request.TeamInfoDTO;
 import com.parkchoi.scrum.domain.team.dto.response.CreateTeamResponseDTO;
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
 import com.parkchoi.scrum.domain.team.entity.Team;
+import com.parkchoi.scrum.domain.team.exception.FailCreateTeamException;
+import com.parkchoi.scrum.domain.team.exception.NoTeamLeaderException;
+import com.parkchoi.scrum.domain.team.exception.TeamNotFoundException;
 import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
+import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
 import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.SecurityContext;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 public class TeamServiceTest {
 
@@ -94,20 +100,28 @@ public class TeamServiceTest {
         Field id3 = mockUser.getClass().getDeclaredField("id");
         id3.setAccessible(true);
         id3.set(invitedUser3,3L);
+
+        teamId = 1L;
+        mockTeam = Team.builder()
+                .name("팀이름")
+                .teamProfileImage("팀사진")
+                .description("팀설명")
+                .currentMember(1)
+                .maxMember(15)
+                .user(mockUser)
+                .build();
+        
     }
 
 
     @Test
     void 팀_생성_성공()throws IOException{
         //given
-        MockMultipartFile file = new MockMultipartFile("file","test.png","image/png","testImageContent".getBytes(StandardCharsets.UTF_8));
-
         Mockito.when(securityContext.getUser()).thenReturn(mockUser);
-
+        MockMultipartFile file = new MockMultipartFile("file","test.png","image/png","testImageContent".getBytes(StandardCharsets.UTF_8));
         Mockito.when(s3UploadService.saveFile(file)).thenReturn("image_url");
         Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(invitedUser2));
         Mockito.when(userRepository.findById(3L)).thenReturn(Optional.of(invitedUser3));
-
 
         //팀 정보 생성
         TeamInfoDTO teamInfo = TeamInfoDTO.builder()
@@ -120,7 +134,6 @@ public class TeamServiceTest {
                 .teamInfoDTO(teamInfo)
                 .inviteList(List.of(2L,3L))
                 .build();
-
 
         //when
         CreateTeamResponseDTO result = teamService.createTeam(file, createTeamRequestDTO);
@@ -136,6 +149,63 @@ public class TeamServiceTest {
         Mockito.verify(teamRepository).save(Mockito.any(Team.class));
         Mockito.verify(inviteTeamListRepository,Mockito.times(3)).save(Mockito.any(InviteTeamList.class));
 
+    }
+    @Test
+    void 팀_생성_실패_파일_저장_실패() throws IOException {
+        //given
+        MockMultipartFile file = new MockMultipartFile("file","test.png","image/png","testImageContent".getBytes(StandardCharsets.UTF_8));
+
+        TeamInfoDTO teamInfo = TeamInfoDTO.builder()
+                .name("팀이름")
+                .description("팀설명")
+                .maxMember(3).build();
+
+        CreateTeamRequestDTO createTeamRequestDTO = CreateTeamRequestDTO.builder()
+                .teamInfoDTO(teamInfo)
+                .inviteList(List.of(2L,3L))
+                .build();
+
+        Mockito.when(securityContext.getUser()).thenReturn(mockUser);
+
+        // When
+        Mockito.when(s3UploadService.saveFile(file)).thenThrow(new IOException("파일 저장 실패"));
+
+        // Then
+        Assertions.assertThrows(FailCreateTeamException.class, ()->{
+            teamService.createTeam(file,createTeamRequestDTO);
+        });
+
+        // verify
+        Mockito.verify(s3UploadService).saveFile(file);
+    }
+
+    @Test
+    void 팀_삭제_성공() {
+        // given
+        Mockito.when(securityContext.getUser()).thenReturn(mockUser);
+        Mockito.when(teamRepository.findById(teamId)).thenReturn(Optional.of(mockTeam));
+
+        // When
+        teamService.removeTeam(teamId);
+
+        // Then
+        Mockito.verify(teamRepository).deleteById(teamId);
+    }
+
+    @Test
+    void 팀_삭제_실패_팀_존재하지_않음(){
+        // given
+        Long nonExistTeamId = 999L;
+        Mockito.when(securityContext.getUser()).thenReturn(mockUser);
+        Mockito.when(teamRepository.findById(nonExistTeamId)).thenReturn(Optional.empty());
+
+        // when + then
+        Assertions.assertThrows(TeamNotFoundException.class, ()->{
+            teamService.removeTeam(nonExistTeamId);
+        });
+
+        // verify
+        Mockito.verify(teamRepository).findById(nonExistTeamId);
     }
 
 }

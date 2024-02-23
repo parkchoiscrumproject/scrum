@@ -108,8 +108,7 @@ public class TeamService {
         }
 
         //팀 삭제
-        // 굳이 유저 id를 안넣어도 될듯? 이미 위에서 해당 유저가 리더인지 판단했으니? 아닌가 일단
-        teamRepository.deleteByIdAndUserId(teamId, user.getId());
+        teamRepository.deleteById(teamId);
     }
 
 
