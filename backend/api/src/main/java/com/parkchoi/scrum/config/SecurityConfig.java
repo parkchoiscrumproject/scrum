@@ -1,5 +1,6 @@
 package com.parkchoi.scrum.config;
 
+import com.parkchoi.scrum.util.filter.RequestLogFilter;
 import com.parkchoi.scrum.util.jwt.JwtFilter;
 import com.parkchoi.scrum.util.oauth.FailureHandler;
 import com.parkchoi.scrum.util.oauth.PrincipalOAuth2UserService;
@@ -42,6 +43,7 @@ public class SecurityConfig {
                     authorize.anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new RequestLogFilter(), JwtFilter.class)
                 // oauth 로그인
                 .oauth2Login(oauth -> {
                     oauth.successHandler(successHandler);

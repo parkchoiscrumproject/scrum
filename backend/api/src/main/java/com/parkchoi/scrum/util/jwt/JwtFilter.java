@@ -185,7 +185,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     "  \"data\": null,\n" +
                     "  \"message\": \"잘못된 서명의 토큰입니다.\"\n" +
                     "}");
-            return; // 필터 체인 처리 중지
         }
 
     }
