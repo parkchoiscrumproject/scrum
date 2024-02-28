@@ -42,7 +42,7 @@ public class UserController{
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 정보가 유효하지 않습니다. 다시 로그인해 주세요", content = @Content)
     })
     @PatchMapping("/user/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response){
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response){
         userServiceImpl.logout(response);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("로그아웃 성공"));
@@ -70,7 +70,6 @@ public class UserController{
     })
     @GetMapping("/user/{nickname}/existence")
     public ResponseEntity<ApiResponse<Boolean>> checkDuplicationNickname(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable("nickname")
             @Size(max = 10, message = "닉네임은 최대 10자까지 가능합니다.")
             @NotBlank(message = "닉네임을 입력해주세요.")
@@ -95,7 +94,6 @@ public class UserController{
     })
     @PatchMapping("/user/nickname")
     public ResponseEntity<ApiResponse<UserNicknameUpdateResponseDTO>> updateUserNickname(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @Size(max = 10, message = "닉네임은 최대 10자까지 가능합니다.")
             @NotBlank(message = "닉네임을 입력해주세요.")
             @Pattern(regexp = "^[가-힣A-Za-z]+$", message = "닉네임은 한글, 영어만 가능합니다.")
@@ -116,7 +114,6 @@ public class UserController{
     })
     @PatchMapping(value = "/user/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<UserProfileImageUpdateResponseDTO>> updateUserProfileImage(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestParam(name = "file") @NotNull
             @Schema(description = "이미지 사진(jpg, jpeg, png)")
             MultipartFile file) throws IOException {
@@ -133,7 +130,6 @@ public class UserController{
     })
     @GetMapping("/user/{email}/find")
     public ResponseEntity<ApiResponse<UserInviteInfoResponseDTO>> findUserInfoToEmail(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable("email")
             @NotNull(message = "이메일은 필수입니다.")
             @Email(message = "이메일 형식이 아닙니다.")
@@ -152,7 +148,6 @@ public class UserController{
     })
     @PatchMapping("/user/status-message")
     public ResponseEntity<ApiResponse<UserStatusMessageUpdateResponseDTO>> changeStatusMessage(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestBody @Valid
             StatusMessageRequestDTO dto){
         UserStatusMessageUpdateResponseDTO responseDTO = userServiceImpl.updateUserStatusMessage(dto.getMessage());

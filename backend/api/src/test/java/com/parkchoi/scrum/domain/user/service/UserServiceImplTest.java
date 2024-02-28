@@ -57,6 +57,7 @@ class UserServiceImplTest {
     private UserServiceImpl userServiceImpl;
 
     @Test
+
     void 로그아웃_성공() {
         // given
         String accessToken = "test_access_token";

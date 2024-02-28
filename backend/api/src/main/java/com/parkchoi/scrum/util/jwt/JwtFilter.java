@@ -91,7 +91,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         // userId 토큰에서 꺼냄.
-        try{
+        try {
             Long userId = jwtUtil.getUserId(accessToken);
 
             log.info("userId:{}", userId);
@@ -175,7 +175,7 @@ public class JwtFilter extends OncePerRequestFilter {
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             filterChain.doFilter(request, response);
-        }catch (SignatureException e){
+        } catch (SignatureException e) {
             log.error("잘못된 JWT 서명입니다.", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
             response.setContentType("application/json");
