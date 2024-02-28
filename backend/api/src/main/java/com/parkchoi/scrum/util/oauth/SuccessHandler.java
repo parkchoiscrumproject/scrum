@@ -12,7 +12,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
@@ -65,16 +64,16 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
         // 리프레시 토큰 생성
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-        // 액세스 토큰을 위한 쿠키 생성
+        // 액세스 토큰을 위한 쿠키 생성(세션쿠키)
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
         accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+//        accessTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
         accessTokenCookie.setPath("/");
 
-        // 리프레시 토큰을 위한 쿠키 생성
+        // 리프레시 토큰을 위한 쿠키 생성(세션쿠키)
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+//        refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
         refreshTokenCookie.setPath("/");
 
         // 쿠키에 토큰 저장
