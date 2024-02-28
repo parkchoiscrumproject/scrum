@@ -67,13 +67,13 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
         // 액세스 토큰을 위한 쿠키 생성(세션쿠키)
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
         accessTokenCookie.setHttpOnly(true);
-//        accessTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+        accessTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
         accessTokenCookie.setPath("/");
 
         // 리프레시 토큰을 위한 쿠키 생성(세션쿠키)
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
-//        refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
+        refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
         refreshTokenCookie.setPath("/");
 
         // 쿠키에 토큰 저장
