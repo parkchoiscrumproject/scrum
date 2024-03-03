@@ -1,7 +1,7 @@
 package com.parkchoi.scrum.util.oauth;
 
 import com.parkchoi.scrum.domain.user.entity.User;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import com.parkchoi.scrum.util.RandomNickname;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,6 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final RandomNickname randomNickname;
-
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
@@ -55,6 +54,7 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
         if(byUser.isEmpty()){
             User userInfo = User.builder()
                     .type("kakao")
+                    .providerId(oAuth2UserInfo.getProviderId())
                     .profileImage("https://ssgcrum.s3.ap-northeast-2.amazonaws.com/profile/default_image.png")
                     .email(email)
                     .nickname(randomNickname.generateUniqueNickname())

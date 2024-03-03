@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.util.jwt;
 
-import com.parkchoi.scrum.domain.user.service.UserService;
+import com.parkchoi.scrum.domain.user.service.impl.UserServiceImpl;
+import com.parkchoi.scrum.util.SecurityContext;
 import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,7 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,7 +28,7 @@ import java.util.List;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     @Value("${jwt.secretkey}")
     private String SECRET_KEY;
     @Value("#{${jwt.access-validity}}")
@@ -36,6 +36,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Value("#{${jwt.refresh-validity}}")
     private Long refreshTokenTime;
     private final JwtUtil jwtUtil;
+    private final SecurityContext securityContext;
 
 
     @Override // 이 주소로 오는 건 토큰 없어도 됨.
@@ -90,7 +91,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         // userId 토큰에서 꺼냄.
-        try{
+        try {
             Long userId = jwtUtil.getUserId(accessToken);
 
             log.info("userId:{}", userId);
@@ -174,7 +175,7 @@ public class JwtFilter extends OncePerRequestFilter {
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             filterChain.doFilter(request, response);
-        }catch (SignatureException e){
+        } catch (SignatureException e) {
             log.error("잘못된 JWT 서명입니다.", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
             response.setContentType("application/json");
@@ -184,7 +185,6 @@ public class JwtFilter extends OncePerRequestFilter {
                     "  \"data\": null,\n" +
                     "  \"message\": \"잘못된 서명의 토큰입니다.\"\n" +
                     "}");
-            return; // 필터 체인 처리 중지
         }
 
     }

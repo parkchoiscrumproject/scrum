@@ -2,13 +2,14 @@ package com.parkchoi.scrum.domain.team.entity;
 
 import com.parkchoi.scrum.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InviteTeamList {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

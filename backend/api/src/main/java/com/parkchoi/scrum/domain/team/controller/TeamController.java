@@ -30,11 +30,10 @@ public class TeamController {
     @Operation(summary = "팀 생성 API", description = "파일(사진)과 팀 정보 초대 리스트를 입력하여 진행합니다.")
     @PostMapping("/team")
     public ResponseEntity<ApiResponse<?>> createTeam(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @RequestPart(value = "file") MultipartFile file,
             @RequestPart(value = "dto") CreateTeamRequestDTO dto) throws IOException {
 
-        CreateTeamResponseDTO result = teamService.createTeam(accessToken, file, dto);
+        CreateTeamResponseDTO result = teamService.createTeam(file, dto);
 
         return ResponseEntity.status(201).body(ApiResponse.createSuccess(result, "팀 생성 성공"));
     }
@@ -44,10 +43,9 @@ public class TeamController {
     @Operation(summary = "팀 삭제 API", description = "파라미터로 넣은 team_id를 받아서 팀 삭제를 진행합니다.")
     @DeleteMapping("/team/{team_id}")
     public ResponseEntity<ApiResponse<?>> deleteTeam(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable Long team_id) {
 
-        teamService.removeTeam(accessToken, team_id);
+        teamService.removeTeam(team_id);
 
         return ResponseEntity.status(204).body(ApiResponse.createSuccessNoContent("팀 삭제 성공"));
     }
@@ -58,11 +56,10 @@ public class TeamController {
     @Operation(summary = "팀원 초대 API", description = "파라미터로 넣은 team_id를 받아서 팀원 초대를 진행합니다.")
     @PostMapping("/team/{team_id}/invite")
     public ResponseEntity<ApiResponse<?>> inviteTeamMember(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId,
             @RequestBody TeamInvitationRequestDTO dto){
 
-        teamService.inviteTeamMember(accessToken,teamId,dto);
+        teamService.inviteTeamMember(teamId,dto);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀원 초대를 성공하였습니다."));
     }
@@ -71,11 +68,10 @@ public class TeamController {
     @Operation(summary = "팀원 초대 승낙 API", description = "파라미터로 넣은 team_id와 invite_id를 받아서 팀 초대를 승낙합니다.")
     @PatchMapping("/team/{team_id}/invite/{invite_id}")
     public ResponseEntity<ApiResponse<?>> acceptTeamInvite(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId,
             @PathVariable(name = "invite_id") Long inviteId){
 
-        teamService.acceptTeamInvite(accessToken,teamId,inviteId);
+        teamService.acceptTeamInvite(teamId,inviteId);
 
         return  ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 초대 승낙을 성공하였습니다."));
     }
@@ -85,11 +81,10 @@ public class TeamController {
     @Operation(summary = "팀 초대 거절 API", description = "파라미터로 넣은 team_id와 invite_id를 받아서 팀 초대를 거절합니다.")
     @DeleteMapping("/team/{team_id}/invite/{invite_id}")
     public ResponseEntity<ApiResponse<?>> refuseTeamInvite(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId,
             @PathVariable(name = "invite_id") Long inviteId){
 
-        teamService.refuseTeamInvite(accessToken,teamId,inviteId);
+        teamService.refuseTeamInvite(teamId,inviteId);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 초대 거절을 성공하였습니다."));
     }
@@ -98,9 +93,8 @@ public class TeamController {
     @Operation(summary = "팀 목록 조회 API", description = "현재 유저가 참여하고 있는 팀의 목록을 조회합니다.")
     @GetMapping("/my-teams")
     public ResponseEntity<ApiResponse<?>> findMyTeams(
-            @CookieValue(name = "accessToken", required = false) String accessToken
     ){
-        TeamListResponseDTO teams = teamService.findMyTeams(accessToken);
+        TeamListResponseDTO teams = teamService.findMyTeams();
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccess(teams,"팀 조회 성공"));
     }
@@ -124,10 +118,9 @@ public class TeamController {
     @Operation(summary = "팀 나가기 API", description = "파라미터로 넣은 team_id를 받아 해당 팀을 나갑니다.")
     @DeleteMapping("/team/{team_id}/leave")
     public ResponseEntity<ApiResponse<?>> leaveTeam(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId){
 
-        teamService.leaveTeam(accessToken,teamId);
+        teamService.leaveTeam(teamId);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 나가기 성공"));
     }
@@ -136,12 +129,11 @@ public class TeamController {
     @Operation(summary = "팀원 추방 API", description = "파라미터로 넣은 team_id를 받아 해당 팀원을 추방시킵니다.")
     @DeleteMapping("/team/{team_id}/kick")
     public ResponseEntity<ApiResponse<?>> kickTeam(
-            @CookieValue(name = "accessToken", required = false) String accessToken,
             @PathVariable(name = "team_id") Long teamId,
             @RequestBody KickTeamRequestDTO dto
             ){
 
-        teamService.kickTeam(accessToken,teamId,dto);
+        teamService.kickTeam(teamId,dto);
 
         return ResponseEntity.status(200).body(ApiResponse.createSuccessNoContent("팀 추방 성공"));
     }

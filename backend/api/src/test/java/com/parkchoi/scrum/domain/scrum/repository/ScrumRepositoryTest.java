@@ -1,11 +1,12 @@
 package com.parkchoi.scrum.domain.scrum.repository;
 
+import com.parkchoi.scrum.domain.config.TestConfig;
 import com.parkchoi.scrum.domain.scrum.entity.Scrum;
 import com.parkchoi.scrum.domain.scrum.repository.scrum.ScrumRepository;
 import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,10 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 
 import java.util.List;
 
 @DataJpaTest
+@Import(TestConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ScrumRepositoryTest {
 
@@ -57,7 +60,7 @@ class ScrumRepositoryTest {
                 .user(user)
                 .team(team)
                 .currentMember(1)
-                .name("스크럼이름")
+                .name("스크럼이름1")
                 .subject("주제")
                 .maxMember(15).build();
         scrumRepository.save(scrum);
@@ -70,7 +73,7 @@ class ScrumRepositoryTest {
     void 삭제되지_않고_팀에_속한_스크럼_모두조회(){
         // given
         // when
-        List<Scrum> scrums = scrumRepository.findByTeamWithFetchJoinUserAndDeleteDateIsNull(team);
+        List<Scrum> scrums = scrumRepository.findActiveScrumsByTeam(team);
 
         // then
         Assertions.assertFalse(scrums.isEmpty());
@@ -91,10 +94,30 @@ class ScrumRepositoryTest {
     void 삭제되지_않고_유저가_속한_스크럼_모두조회(){
         // given
         // when
-        boolean result = scrumRepository.existsByUserAndDeleteDateIsNullAndEndTimeIsNull(user);
+        boolean result = scrumRepository.existsActiveScrumByUser(user);
 
         // then
         Assertions.assertTrue(result);
+    }
 
+    @Test
+    @DisplayName("삭젝되지 않은 팀의 스크럼 조회")
+    void 삭제되지_않은_팀의_스크럼_모두조회(){
+        // given
+        Scrum scrum1 = Scrum.builder()
+                .user(user)
+                .team(team)
+                .currentMember(1)
+                .name("스크럼이름2")
+                .subject("주제")
+                .maxMember(15).build();
+        scrumRepository.save(scrum1);
+
+        // when
+        List<Scrum> activeScrumsByTeam = scrumRepository.findActiveScrumsByTeam(team);
+
+        // then
+        Assertions.assertFalse(activeScrumsByTeam.isEmpty());
+        Assertions.assertEquals(activeScrumsByTeam.get(0).getName(), scrum.getName());
     }
 }

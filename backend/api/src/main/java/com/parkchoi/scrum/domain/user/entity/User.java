@@ -1,6 +1,7 @@
 package com.parkchoi.scrum.domain.user.entity;
 
 import com.parkchoi.scrum.domain.team.entity.InviteTeamList;
+import com.parkchoi.scrum.util.api.BaseTimeEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,11 +10,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,12 +20,15 @@ import java.util.List;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+@DynamicUpdate
+public class User extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
     private String type;
+    @Column(nullable = false)
+    private String providerId;
     @Column(unique = true, nullable = false)
     @Email(message = "이메일 형식이 아닙니다.")
     @NotBlank(message = "이메일은 항상 입력돼야 합니다.")
@@ -34,12 +36,6 @@ public class User {
     @Column(unique = true, nullable = false, length = 20)
     @NotBlank(message = "닉네임은 항상 입력돼야 합니다.")
     private String nickname;
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdDate;
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedDate;
     @Column(length = 100, nullable = true)
     @Size(max = 100, message = "상태메시지는 100자를 초과할 수 없습니다.")
     private String statusMessage;
@@ -51,12 +47,13 @@ public class User {
     private Boolean isOnline = false;
 
     @Builder
-    public User(String type, String email, String nickname, String profileImage, Boolean isOnline) {
+    public User(String type, String email, String nickname, String profileImage, Boolean isOnline, String providerId) {
         this.type = type;
         this.email = email;
         this.nickname = nickname;
         this.profileImage = profileImage;
         this.isOnline = isOnline;
+        this.providerId = providerId;
     }
 
     // 온라인 상태 변경

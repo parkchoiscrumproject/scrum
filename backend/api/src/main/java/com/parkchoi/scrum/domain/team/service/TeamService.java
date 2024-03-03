@@ -1,5 +1,7 @@
 package com.parkchoi.scrum.domain.team.service;
 
+import com.parkchoi.scrum.domain.exception.exception.UserException;
+import com.parkchoi.scrum.domain.exception.info.UserExceptionInfo;
 import com.parkchoi.scrum.domain.team.dto.request.CreateTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.request.KickTeamRequestDTO;
 import com.parkchoi.scrum.domain.team.dto.request.TeamInvitationRequestDTO;
@@ -11,7 +13,8 @@ import com.parkchoi.scrum.domain.team.repository.InviteTeamListRepository;
 import com.parkchoi.scrum.domain.team.repository.TeamRepository;
 import com.parkchoi.scrum.domain.user.entity.User;
 import com.parkchoi.scrum.domain.user.exception.UserNotFoundException;
-import com.parkchoi.scrum.domain.user.repository.UserRepository;
+import com.parkchoi.scrum.domain.user.repository.user.UserRepository;
+import com.parkchoi.scrum.util.SecurityContext;
 import com.parkchoi.scrum.util.jwt.JwtUtil;
 import com.parkchoi.scrum.util.s3.S3UploadService;
 import jakarta.transaction.Transactional;
@@ -21,9 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,19 +36,16 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final InviteTeamListRepository inviteTeamListRepository;
     private final S3UploadService s3UploadService;
-    private final JwtUtil jwtUtil;
+    private final SecurityContext securityContext;
 
     //팀 생성
     @Transactional
-    public CreateTeamResponseDTO createTeam(String accessToken, MultipartFile file, CreateTeamRequestDTO dto) {
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+    public CreateTeamResponseDTO createTeam(MultipartFile file, CreateTeamRequestDTO dto) {
+        User user = securityContext.getUser();
 
         String imageUrl = null;
 
-        try{
+        try {
             //파일 저장
             imageUrl = s3UploadService.saveFile(file);
 
@@ -65,10 +63,10 @@ public class TeamService {
             //팀 초대
             List<Long> inviteList = dto.getInviteList();
 
-            if(inviteList!=null && !inviteList.isEmpty()){
-                for(Long inviteUserId : inviteList){
+            if (inviteList != null && !inviteList.isEmpty()) {
+                for (Long inviteUserId : inviteList) {
 
-                    User inviteeUser  = userRepository.findById(inviteUserId).get();
+                    User inviteeUser = userRepository.findById(inviteUserId).get();
 
                     InviteTeamList inviteTeamList = InviteTeamList.builder()
                             .user(inviteeUser)
@@ -86,10 +84,10 @@ public class TeamService {
                     .participant(true).build();
             inviteTeamListRepository.save(curUser);
 
-            return new CreateTeamResponseDTO(team.getName(),imageUrl);
+            return new CreateTeamResponseDTO(team.getName(), imageUrl);
 
         } catch (Exception e) {
-            if(imageUrl != null){
+            if (imageUrl != null) {
                 s3UploadService.deleteFile(imageUrl);
             }
             throw new FailCreateTeamException("팀 생성에 실패하였습니다.");
@@ -99,40 +97,34 @@ public class TeamService {
 
     // 팀 삭제
     @Transactional
-    public void removeTeam(String accessToken, Long teamId){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+    public void removeTeam(Long teamId) {
+        User user = securityContext.getUser();
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
 
-        if(!team.getUser().getId().equals(userId)){
+        if (!team.getUser().equals(user)) {
             throw new NoTeamLeaderException("리더만 삭제 가능합니다.");
         }
 
         //팀 삭제
-        teamRepository.deleteByIdAndUserId(teamId,userId);
+        teamRepository.deleteById(teamId);
     }
 
 
     // 팀원 초대
     @Transactional
-    public void inviteTeamMember(String accessToken, Long teamId, TeamInvitationRequestDTO dto){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+    public void inviteTeamMember(Long teamId, TeamInvitationRequestDTO dto) {
+        User user = securityContext.getUser();
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
 
         List<Long> inviteeUserIds = dto.getInviteList();
 
-        for(Long inviteeUserId : inviteeUserIds){
+        for (Long inviteeUserId : inviteeUserIds) {
             User invitee = userRepository.findById(inviteeUserId)
-                    .orElseThrow(() -> new UserNotFoundException("초대할 유저 찾을 수 없음"));
+                    .orElseThrow(() -> new UserException(UserExceptionInfo.NOT_FOUNT_USER, "DB에서 " + "번 유저를 찾지 못했습니다."));
 
             InviteTeamList invite = InviteTeamList.builder()
                     .user(invitee)
@@ -146,32 +138,24 @@ public class TeamService {
 
     // 팀 초대 승낙
     @Transactional
-    public void acceptTeamInvite(String accessToken, Long teamId, Long inviteId){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+    public void acceptTeamInvite(Long teamId, Long inviteId) {
+        User user = securityContext.getUser();
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
 
         InviteTeamList teamList = inviteTeamListRepository.findById(inviteId)
-                .orElseThrow(()-> new InviteNotFoundException("초대가 존재하지 않습니다."));
+                .orElseThrow(() -> new InviteNotFoundException("초대가 존재하지 않습니다."));
 
         //초대 승낙
         teamList.acceptInvitation();
     }
 
 
-
-
     // 팀 초대 거절
     @Transactional
-    public void refuseTeamInvite(String accessToken, Long teamId, Long inviteId){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+    public void refuseTeamInvite(Long teamId, Long inviteId) {
+        User user = securityContext.getUser();
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
@@ -181,16 +165,13 @@ public class TeamService {
 
 
     // 나의 팀 목록 조회
-    public TeamListResponseDTO findMyTeams(String accessToken){
-        Long userId = jwtUtil.getUserId(accessToken);
+    public TeamListResponseDTO findMyTeams() {
+        User user = securityContext.getUser();
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
-
-        List <InviteTeamList> inviteTeamList = inviteTeamListRepository.findByUserAndParticipantIsTrue(user)
+        List<InviteTeamList> inviteTeamList = inviteTeamListRepository.findByUserAndParticipantIsTrue(user)
                 .orElse(new ArrayList<>());
 
-        if(inviteTeamList.isEmpty()){
+        if (inviteTeamList.isEmpty()) {
             throw new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다.");
         }
 
@@ -212,11 +193,8 @@ public class TeamService {
 
 
     // 팀에 속해있는 멤버들을 조회
-    public MemberListResponseDTO findTeamMembers(String accessToken,Long teamId){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+    public MemberListResponseDTO findTeamMembers(Long teamId) {
+        User user = securityContext.getUser();
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
@@ -224,12 +202,12 @@ public class TeamService {
         List<InviteTeamList> inviteTeamLists = inviteTeamListRepository.findByTeamAndParticipantIsTrue(team)
                 .orElse(new ArrayList<>());
 
-        if(inviteTeamLists.isEmpty()){
+        if (inviteTeamLists.isEmpty()) {
             throw new NonParticipantUserException("해당 유저가 팀에 참여하지 않았습니다.");
         }
 
         List<MemberDTO> members = inviteTeamLists.stream()
-                .map(member ->{
+                .map(member -> {
                     User u = member.getUser();
                     return MemberDTO.builder()
                             .userId(u.getId())
@@ -246,11 +224,8 @@ public class TeamService {
 
     // 팀 나가기
     @Transactional
-    public void leaveTeam(String accessToken, Long teamId){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("유저 없음"));
+    public void leaveTeam(Long teamId) {
+        User user = securityContext.getUser();
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
@@ -267,26 +242,23 @@ public class TeamService {
 
     // 팀원 추방
     @Transactional
-    public void kickTeam(String accessToken, Long teamId, KickTeamRequestDTO dto){
-        Long userId = jwtUtil.getUserId(accessToken);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(()->new UserNotFoundException("유저 없음"));
+    public void kickTeam(Long teamId, KickTeamRequestDTO dto) {
+        User user = securityContext.getUser();
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(()->new TeamNotFoundException("팀이 존재하지 않습니다."));
+                .orElseThrow(() -> new TeamNotFoundException("팀이 존재하지 않습니다."));
 
-        if(team.getUser()!=user){
+        if (team.getUser() != user) {
             throw new NoTeamLeaderException("리더만 삭제 가능합니다.");
-        }else{
+        } else {
             Long kickUserId = dto.getUserId();
             User kickUser = userRepository.findById(kickUserId)
-                    .orElseThrow(() -> new UserNotFoundException("추방할 유저 없음"));
+                    .orElseThrow(() -> new UserException(UserExceptionInfo.NOT_FOUNT_USER, "DB에서 " + "번 유저를 찾지 못했습니다."));
 
             //멤버 감소
             team.decreaseCurrentMember();
 
-            inviteTeamListRepository.deleteByUserAndTeamAndParticipantIsTrue(kickUser,team);
+            inviteTeamListRepository.deleteByUserAndTeamAndParticipantIsTrue(kickUser, team);
         }
     }
 

@@ -4,6 +4,7 @@ import com.parkchoi.scrum.domain.team.entity.Team;
 import com.parkchoi.scrum.domain.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Scrum {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

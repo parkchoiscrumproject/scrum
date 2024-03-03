@@ -1,7 +1,9 @@
 package com.parkchoi.scrum.domain.team.entity;
 
 import com.parkchoi.scrum.domain.user.entity.User;
+import com.parkchoi.scrum.util.api.BaseTimeEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,8 +18,8 @@ import java.util.List;
 @Entity
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-@NoArgsConstructor
-public class Team {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Team extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,12 +34,6 @@ public class Team {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdDate;
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedDate;
     @Column(nullable = false)
     private String teamProfileImage;
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
