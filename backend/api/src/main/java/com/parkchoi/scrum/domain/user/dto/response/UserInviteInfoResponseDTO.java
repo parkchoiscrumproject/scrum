@@ -1,5 +1,6 @@
 package com.parkchoi.scrum.domain.user.dto.response;
 
+        import com.parkchoi.scrum.domain.user.entity.User;
         import io.swagger.v3.oas.annotations.media.Schema;
         import lombok.*;
 
@@ -17,5 +18,12 @@ public class UserInviteInfoResponseDTO {
         this.userId = userId;
         this.profileImage = profileImage;
         this.nickname = nickname;
+    }
+
+    public static UserInviteInfoResponseDTO fromEntity(User user){
+        return UserInviteInfoResponseDTO.builder()
+                .nickname(user.getNickname())
+                .userId(user.getId())
+                .profileImage(user.getProfileImage()).build();
     }
 }

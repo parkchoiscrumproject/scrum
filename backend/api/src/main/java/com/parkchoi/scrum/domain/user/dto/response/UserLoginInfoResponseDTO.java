@@ -1,5 +1,6 @@
 package com.parkchoi.scrum.domain.user.dto.response;
 
+import com.parkchoi.scrum.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -23,5 +24,14 @@ public class UserLoginInfoResponseDTO {
         this.statusMessage = statusMessage;
         this.profileImage = profileImage;
         this.isOnline = isOnline;
+    }
+
+    public static UserLoginInfoResponseDTO fromEntity(User user){
+        return UserLoginInfoResponseDTO.builder()
+                .nickname(user.getNickname())
+                .statusMessage(user.getStatusMessage())
+                .profileImage(user.getProfileImage())
+                .isOnline(user.getIsOnline())
+                .email(user.getEmail()).build();
     }
 }

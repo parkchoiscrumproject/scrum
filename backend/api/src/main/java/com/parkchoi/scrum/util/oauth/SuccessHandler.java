@@ -41,7 +41,6 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
-
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -65,13 +64,13 @@ public class SuccessHandler implements AuthenticationSuccessHandler {
         // 리프레시 토큰 생성
         String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-        // 액세스 토큰을 위한 쿠키 생성
+        // 액세스 토큰을 위한 쿠키 생성(세션쿠키)
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정
         accessTokenCookie.setPath("/");
 
-        // 리프레시 토큰을 위한 쿠키 생성
+        // 리프레시 토큰을 위한 쿠키 생성(세션쿠키)
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true); // HTTPS를 사용하는 경우에만 true로 설정

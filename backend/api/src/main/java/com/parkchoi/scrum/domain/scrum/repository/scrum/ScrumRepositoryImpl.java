@@ -40,7 +40,8 @@ public class ScrumRepositoryImpl implements ScrumRepositoryCustom {
                 .selectFrom(scrum)
                 .join(scrum.user).fetchJoin()
                 .where(scrum.team.eq(team)
-                        .and(scrum.deleteDate.isNull()))
+                        .and(scrum.deleteDate.isNull())
+                        .and(scrum.endTime.isNull()))
                 .fetch();
     }
 
