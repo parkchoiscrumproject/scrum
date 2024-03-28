@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import LoginModal from "../../components/common/LoginModal.tsx";
 import logo from "../../assets/logo.png";
-import styles from "../HomePage/Home.module.css";
+import styles from "../HomePage/Login.module.css";
 
 const Home: React.FC = () => {
   return (
